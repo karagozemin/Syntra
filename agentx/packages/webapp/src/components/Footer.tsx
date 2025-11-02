@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Sparkles, Twitter, Github,} from "lucide-react";
+import Image from "next/image";
+import { Twitter, Github,} from "lucide-react";
 
 export function Footer() {
   return (
@@ -9,8 +10,16 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-purple-400" />
-              <span className="text-xl font-bold text-gradient">0Gents</span>
+              <Link href="/" className="flex items-center">
+                <Image 
+                  src="/logo.png" 
+                  alt="0Gents Logo" 
+                  width={200} 
+                  height={80}
+                  className="h-20 w-auto"
+                  priority
+                />
+              </Link>
             </div>
             <p className="text-sm text-gray-400 max-w-xs">
               The future of AI-powered digital assets on the 0G Network. Create, trade, and explore intelligent NFT agents.
@@ -54,7 +63,7 @@ export function Footer() {
             <h3 className="font-semibold text-white">Community</h3>
             <div className="flex gap-3">
               <a 
-                href="https://x.com/kaptan_web3" 
+                href="https://x.com/0Gents" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-400/30 transition-all"

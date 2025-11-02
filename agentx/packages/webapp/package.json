@@ -2,7 +2,7 @@
   "name": "webapp",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://0-gents-marketplace.vercel.app",
+  "homepage": "https://www.0gents.shop",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --no-lint",

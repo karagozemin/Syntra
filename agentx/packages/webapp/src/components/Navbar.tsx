@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Search, Sparkles, X, Menu } from "lucide-react";
+import { Search, X, Menu } from "lucide-react";
+import Image from "next/image";
 import { Input } from "./ui/input";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -88,10 +89,15 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative">
-            <Sparkles className="w-6 h-6 text-purple-400 group-hover:text-purple-300 transition-colors" />
-            <div className="absolute inset-0 w-6 h-6 bg-purple-400/20 rounded-full blur-sm group-hover:bg-purple-300/30 transition-all"></div>
+            <Image 
+              src="/logo.png" 
+              alt="0Gents Logo" 
+              width={180} 
+              height={72}
+              className="h-14 w-auto group-hover:opacity-80 transition-opacity"
+              priority
+            />
           </div>
-          <span className="text-xl font-bold text-gradient">0Gents</span>
         </Link>
         
         <div className="hidden md:flex items-center gap-8 ml-8">

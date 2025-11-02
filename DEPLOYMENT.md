@@ -253,7 +253,7 @@ Visit: https://chainlist.org/ and search for "0G"
 
 ## 🎯 Production URLs
 
-- **Live Application**: https://0-gents-marketplace.vercel.app
+- **Live Application**: https://www.0gents.shop
 - **Mainnet Factory**: https://chainscan.0g.ai/address/0x9834a0B8B3789646408Cf4C3DCC41Dd580F50785
 - **Mainnet Marketplace**: https://chainscan.0g.ai/address/0x1320CB9AE8fB7D30f834AB5553C60dDeF0362dBB
 

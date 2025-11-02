@@ -2,7 +2,7 @@
 
 > **The world's first decentralized marketplace for AI-powered Intelligent NFTs, built on 0G Network's revolutionary infrastructure**
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=vercel)](https://0-gents-marketplace.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=vercel)](https://www.0gents.shop)
 [![Mainnet](https://img.shields.io/badge/🚀_LIVE_ON-0G_MAINNET-success?style=for-the-badge)](https://chainscan.0g.ai)
 [![Wave 2 Demo](https://img.shields.io/badge/Wave_2-Demo-red?style=for-the-badge&logo=youtube)](https://youtu.be/rReR3pXp8No)
 [![Wave 1 Demo](https://img.shields.io/badge/Wave_1-Demo-orange?style=for-the-badge&logo=youtube)](https://youtu.be/Q8J8AylG4uA)
@@ -15,7 +15,7 @@
 
 - ✅ **Factory Contract**: [`0x9834a0B8B3789646408Cf4C3DCC41Dd580F50785`](https://chainscan.0g.ai/address/0x9834a0B8B3789646408Cf4C3DCC41Dd580F50785)
 - ✅ **Marketplace Contract**: [`0x1320CB9AE8fB7D30f834AB5553C60dDeF0362dBB`](https://chainscan.0g.ai/address/0x1320CB9AE8fB7D30f834AB5553C60dDeF0362dBB)
-- 🌐 **Live App**: [0-gents-marketplace.vercel.app](https://0-gents-marketplace.vercel.app)
+- 🌐 **Live App**: [https://www.0gents.shop](https://www.0gents.shop)
 - 📚 **Deployment Guide**: [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ## 🎯 **What is 0Gents?**
@@ -181,7 +181,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [https://0-gents-marketplace.vercel.app/](https://0-gents-marketplace.vercel.app/) to view the application.
+Open [https://www.0gents.shop/](https://www.0gents.shop/) to view the application.
 
 ## 🔧 Configuration
 
@@ -467,7 +467,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 ## 🔗 **Important Links**
 
 ### 🌐 **Live Platform**
-- **🚀 Main Application**: [0-gents-marketplace.vercel.app](https://0-gents-marketplace.vercel.app)
+- **🚀 Main Application**: [https://www.0gents.shop](https://www.0gents.shop)
 - **📱 Mobile-Optimized**: Responsive design works on all devices
 - **🔗 0G Explorer**: [chainscan-galileo.0g.ai](https://chainscan-galileo.0g.ai) (for contract verification)
 
@@ -489,7 +489,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ### 👨‍💻 **Development & Community**
 - **📦 GitHub Repository**: [karagozemin/0Gents-Marketplace](https://github.com/karagozemin/0Gents-Marketplace)
-- **🐦 Twitter/X**: [@kaptan_web3](https://x.com/kaptan_web3) - Latest updates and announcements
+- **🐦 Twitter/X**: [@0Gents](https://x.com/0Gents) - Latest updates and announcements
 - **💬 Discord**: [Join our community](https://discord.gg/0gents) - Developer discussions and support
 - **📧 Contact**: [team@0gents.ai](mailto:team@0gents.ai) - Business inquiries and partnerships
 

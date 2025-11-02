@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="magentaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF00FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF1493;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0a0a1a" rx="64"/>
+  
+  <!-- Rounded square border -->
+  <rect x="128" y="128" width="256" height="256" rx="48" fill="none" stroke="url(#magentaGrad)" stroke-width="32" filter="url(#glow)"/>
+  
+  <!-- Stylized S symbol -->
+  <path d="M 160 160 L 256 160 Q 288 160 288 192 L 288 224 Q 288 256 256 256 L 352 256 Q 384 256 384 288 L 384 352 Q 384 384 352 384 L 256 384 Q 224 384 224 352 L 224 320 Q 224 288 256 288 L 160 288 Q 128 288 128 256 L 128 192 Q 128 160 160 160 Z" 
+        fill="url(#magentaGrad)" 
+        filter="url(#glow)"/>
+</svg>

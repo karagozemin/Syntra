@@ -1,0 +1,46 @@
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <defs>
+    <!-- Glow effects for symbol -->
+    <filter id="glow-magenta">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Glow effects for text -->
+    <filter id="glow-cyan">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Magenta gradient -->
+    <linearGradient id="magentaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF00FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF1493;stop-opacity:1" />
+    </linearGradient>
+    <!-- Cyan gradient -->
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00FFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00CED1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded square border -->
+  <rect x="5" y="5" width="30" height="30" rx="6" fill="none" stroke="url(#magentaGrad)" stroke-width="2.5" filter="url(#glow-magenta)" opacity="0.9"/>
+  
+  <!-- Stylized S symbol -->
+  <path d="M 12 12 L 18 12 Q 20 12 20 14 L 20 18 Q 20 20 22 20 L 25 20 Q 27 20 27 22 L 27 26 Q 27 28 25 28 L 22 28 Q 20 28 20 26 L 20 22 Q 20 20 18 20 L 15 20 Q 13 20 13 18 L 13 14 Q 13 12 15 12 Z" 
+        fill="url(#magentaGrad)" 
+        filter="url(#glow-magenta)" 
+        opacity="0.95"/>
+  
+  <!-- OGENTS Text -->
+  <text x="45" y="45" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="url(#cyanGrad)" filter="url(#glow-cyan)">
+    OGENTS
+  </text>
+</svg>
+
