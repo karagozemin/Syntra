@@ -89,8 +89,57 @@ export function CreateWizard({ onComplete, isCreating }: CreateWizardProps) {
     updateData({ capabilities: newCaps });
   };
 
-  // Handle image file selection
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress image to reduce size
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d')!;
+          
+          // Max dimensions (800x800)
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          
+          let width = img.width;
+          let height = img.height;
+          
+          // Calculate new dimensions while maintaining aspect ratio
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Compress to JPEG with 70% quality
+          const compressed = canvas.toDataURL('image/jpeg', 0.7);
+          
+          console.log(`📦 Image compressed: ${file.size} bytes → ${compressed.length * 0.75} bytes (${Math.round((1 - (compressed.length * 0.75 / file.size)) * 100)}% reduction)`);
+          
+          resolve(compressed);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle image file selection with compression
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -100,20 +149,23 @@ export function CreateWizard({ onComplete, isCreating }: CreateWizardProps) {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+    // Validate file size (max 10MB before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image size must be less than 10MB');
       return;
     }
 
     setImageFile(file);
 
-    // Convert to base64 for preview and storage
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      updateData({ image: reader.result as string });
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Compress and convert to base64
+      const compressedImage = await compressImage(file);
+      updateData({ image: compressedImage });
+    } catch (error) {
+      console.error('Image compression failed:', error);
+      alert('Failed to process image. Please try another file.');
+      setImageFile(null);
+    }
   };
 
   const canProceed = () => {
