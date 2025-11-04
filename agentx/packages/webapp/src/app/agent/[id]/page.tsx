@@ -85,7 +85,8 @@ export default function AgentDetail() {
       // ✅ BLOCKCHAIN VALIDATION - Check if listing exists
       console.log(`🔍 Validating listing ${agent.listingId} on blockchain...`);
       
-      const OG_RPC_URL = 'https://evmrpc-testnet.0g.ai';
+      const isMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === 'true';
+      const OG_RPC_URL = isMainnet ? 'https://evmrpc.0g.ai' : 'https://evmrpc-testnet.0g.ai';
       
       const response = await fetch(OG_RPC_URL, {
         method: 'POST',

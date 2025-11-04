@@ -761,32 +761,53 @@ export default function CreatePage() {
           updateProgress("🔍 Extracting listing ID from transaction...");
           console.log("🔍 Getting listing transaction receipt for hash:", listHash);
           
-          // Wait for transaction to be indexed
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          const isMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === 'true';
+          const rpcUrl = isMainnet ? 'https://evmrpc.0g.ai' : 'https://evmrpc-testnet.0g.ai';
           
-          const txReceipt = await fetch(`https://evmrpc-testnet.0g.ai/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              jsonrpc: '2.0',
-              method: 'eth_getTransactionReceipt',
-              params: [listHash],
-              id: 901
-            })
-          });
+          // Retry mechanism for transaction receipt (mainnet can be slow)
+          let txResult: any = null;
+          const maxRetries = 4;
+          const retryDelay = 5000; // 5 seconds
           
-          const txResult = await txReceipt.json();
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            console.log(`🔄 Attempt ${attempt}/${maxRetries} to get transaction receipt...`);
+            
+            // Wait before each attempt
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            
+            const txReceipt = await fetch(rpcUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'eth_getTransactionReceipt',
+                params: [listHash],
+                id: 901
+              })
+            });
+            
+            const result = await txReceipt.json();
+            
+            if (result.result && result.result !== null) {
+              txResult = result;
+              console.log(`✅ Transaction receipt received on attempt ${attempt}`);
+              break;
+            } else {
+              console.log(`⏳ Attempt ${attempt}: Receipt not ready yet, waiting...`);
+            }
+          }
+          
           console.log("📊 Listing transaction receipt:", txResult);
           
           // Parse logs for ItemListed event
           if (txResult.result?.logs && txResult.result.logs.length > 0) {
             console.log("🔍 Found", txResult.result.logs.length, "logs in listing transaction");
             
-            // Try multiple possible event signatures for ItemListed
+            // Try multiple possible event signatures for ItemListed/Listed
             const possibleSignatures = [
-              "0x4b5b465e22eea0c3d40c30e936643245b80d19b2dcf75788c0699fe8d8ec660b", // ItemListed(uint256,address,uint256,address,uint256)
-              "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925", // Alternative signature
-              "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef", // Another alternative
+              "0x9791797c382de5e73cc7c32c32ffd8304e9b9cc1f6afd967990c1edd0729dba9", // Listed event (real signature from mainnet)
+              "0x4b5b465e22eea0c3d40c30e936643245b80d19b2dcf75788c0699fe8d8ec660b", // Alternative signature
+              "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925", // Another alternative
             ];
             
             for (const log of txResult.result.logs) {
