@@ -4,8 +4,7 @@
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=vercel)](https://www.0gents.shop)
 [![Mainnet](https://img.shields.io/badge/🚀_LIVE_ON-0G_MAINNET-success?style=for-the-badge)](https://chainscan.0g.ai)
-[![Wave 2 Demo](https://img.shields.io/badge/Wave_2-Demo-red?style=for-the-badge&logo=youtube)](https://youtu.be/rReR3pXp8No)
-[![Wave 1 Demo](https://img.shields.io/badge/Wave_1-Demo-orange?style=for-the-badge&logo=youtube)](https://youtu.be/Q8J8AylG4uA)
+[![Demo Video](https://img.shields.io/badge/Wave_1-Demo-orange?style=for-the-badge&logo=youtube)](https://youtu.be/nIPRd8aUGBg)
 [![0G Network](https://img.shields.io/badge/Built_on-0G_Network-purple?style=for-the-badge&logo=ethereum)](https://0g.ai)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
