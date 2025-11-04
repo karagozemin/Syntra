@@ -766,13 +766,13 @@ export default function CreatePage() {
           
           // Retry mechanism for transaction receipt (mainnet can be slow)
           let txResult: any = null;
-          const maxRetries = 4;
-          const retryDelay = 5000; // 5 seconds
+          const maxRetries = 10; // Increased for mainnet reliability
           
           for (let attempt = 1; attempt <= maxRetries; attempt++) {
             console.log(`🔄 Attempt ${attempt}/${maxRetries} to get transaction receipt...`);
             
-            // Wait before each attempt
+            // Dynamic delay: increases with each attempt (5s, 6s, 7s, 8s, ...)
+            const retryDelay = 5000 + (attempt * 1000);
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             
             const txReceipt = await fetch(rpcUrl, {
@@ -790,10 +790,13 @@ export default function CreatePage() {
             
             if (result.result && result.result !== null) {
               txResult = result;
-              console.log(`✅ Transaction receipt received on attempt ${attempt}`);
+              console.log(`✅ Transaction receipt received on attempt ${attempt} (waited ${retryDelay/1000}s)`);
               break;
             } else {
-              console.log(`⏳ Attempt ${attempt}: Receipt not ready yet, waiting...`);
+              console.log(`⏳ Attempt ${attempt}: Receipt not ready yet, waiting ${retryDelay/1000}s for next attempt...`);
+              if (attempt === maxRetries) {
+                console.log(`❌ Failed to get receipt after ${maxRetries} attempts (${(5*maxRetries + (maxRetries*(maxRetries+1)/2))}s total)`);
+              }
             }
           }
           
