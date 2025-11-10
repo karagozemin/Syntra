@@ -1,4 +1,4 @@
-// API route for 0G Storage uploads
+// API route for IPFS/Pinata uploads
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadAgentMetadataServer, type AgentMetadata } from '@/lib/serverStorage';
 
@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('📡 API: Received upload request for:', metadata.name);
+    console.log('📡 API: Received IPFS upload request for:', metadata.name);
     
-    // Upload using server-side 0G SDK
+    // Upload using server-side Pinata SDK
     const result = await uploadAgentMetadataServer(metadata);
     
     return NextResponse.json(result);

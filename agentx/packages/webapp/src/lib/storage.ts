@@ -1,5 +1,5 @@
+// Client-side IPFS/Pinata storage wrapper
 import type { ChatMessage } from "./compute";
-import { ZERO_G_STORAGE_FLOW, ZERO_G_DA_ENTRANCE } from "./contracts";
 
 export type ChatLog = {
   agentId: string;
@@ -34,461 +34,234 @@ export type StorageResult = {
   hash?: string;
   uri?: string;
   error?: string;
-  txHash?: string;
-  rootHash?: string;
+  ipfsHash?: string;
 };
 
-// 0G Storage configuration
-const OG_RPC_URL = process.env.NEXT_PUBLIC_0G_RPC_URL || 'https://evmrpc-testnet.0g.ai';
-// Using old indexer only for 0G Storage as recommended by team during storage nodes sync
-const OG_INDEXER_URL = process.env.NEXT_PUBLIC_0G_INDEXER_URL || 'https://indexer-storage-testnet-turbo.0g.ai';
-const OG_PRIVATE_KEY = process.env.NEXT_PUBLIC_0G_PRIVATE_KEY || '';
-
-// Client-side wrapper for 0G Storage API calls
-
-// Use real 0G Storage API for uploads with improved error handling
-async function uploadToZeroGStorage(data: string, type: 'metadata' | 'file' = 'metadata'): Promise<StorageResult> {
-  try {
-    if (type === 'metadata') {
-      // Parse the JSON metadata and call API
-      const metadata = JSON.parse(data);
-      
-      console.log('📡 Starting API call...');
-      
-      // Call real 0G Storage API
-      console.log('🚀 Using REAL 0G Storage Network');
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // Increased to 120s timeout
-      
-      const response = await fetch('/api/storage/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ metadata }),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      if (!result.success) {
-        console.error('❌ 0G Storage API failed:', result.error);
-        // Fallback to simulation if real storage fails
-        console.log('🔄 Falling back to simulation...');
-        return await simulateZeroGUpload(data, 'metadata');
-      }
-      
-      return result;
-    } else {
-      // For file uploads, we'll need to adapt this
-      // For now, create a simple metadata wrapper
-      const metadata = {
-        name: 'File Upload',
-        description: 'File uploaded to 0G Storage',
-        image: '',
-        creator: 'Anonymous',
-        category: 'File',
-        capabilities: ['file-storage'],
-        skills: ['storage'],
-        fileData: data
-      };
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // Increased to 120s timeout
-      
-      const response = await fetch('/api/storage/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ metadata }),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      if (!result.success) {
-        console.error('❌ 0G Storage API failed:', result.error);
-        throw new Error(`0G Storage upload failed: ${result.error}`);
-      }
-      
-      return result;
-    }
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.error('❌ 0G Storage API timeout after 120 seconds');
-      console.log('🔄 Falling back to simulation due to timeout...');
-      return await simulateZeroGUpload(data, type);
-    } else {
-      console.error('❌ 0G Storage API error:', error);
-      console.log('🔄 Falling back to simulation due to API error...');
-      return await simulateZeroGUpload(data, type);
-    }
-  }
-}
-
-// Keep simulation as fallback
-async function simulateZeroGUpload(data: string, type: 'metadata' | 'file' = 'metadata'): Promise<StorageResult> {
-  // Generate realistic 0G storage hash (similar to IPFS but with 0g prefix)
-  const randomSuffix = Math.random().toString(36).substring(2, 15);
-  const dataHash = await generateMockHash(data);
-  const rootHash = `0g${dataHash}${randomSuffix}`;
-  
-  // Simulate network upload time (reduced for better UX)
-  const uploadTime = Math.max(300, data.length / 200 + Math.random() * 500);
-  await new Promise(resolve => setTimeout(resolve, uploadTime));
-  
-  // Simulate transaction hash for on-chain storage proof
-  const txHash = `0x${Math.random().toString(16).substring(2, 66)}`;
-  
-  // Store in localStorage with 0G-style metadata
-  const storageEntry = {
-    data,
-    type,
-    timestamp: new Date().toISOString(),
-    rootHash,
-    txHash,
-    size: data.length,
-    chunks: Math.ceil(data.length / 1024),
-    network: "0G Galileo Testnet (Simulated)",
-    indexerUrl: OG_INDEXER_URL
-  };
-  
-  localStorage.setItem(`0g_storage_${rootHash}`, JSON.stringify(storageEntry));
-  
-  return {
-    success: true,
-    hash: rootHash,
-    rootHash,
-    uri: `0g://storage/${rootHash}`,
-    txHash
-  };
-}
-
-// Generate a mock hash that looks realistic
-async function generateMockHash(data: string): Promise<string> {
-  // Simple hash function for demo (in real 0G, this would be merkle tree hash)
-  let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    const char = data.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash).toString(16).padStart(8, '0');
-}
-
-async function simulateZeroGRetrieve(rootHash: string): Promise<string | null> {
-  // Simulate network latency
-  await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 300));
-  
-  const stored = localStorage.getItem(`0g_storage_${rootHash}`);
-  if (stored) {
-    const entry = JSON.parse(stored);
-    console.log(`📥 Retrieved from 0G Storage simulation (${entry.size} bytes, ${entry.chunks} chunks)`);
-    return entry.data;
-  }
-  
-  return null;
-}
+// IPFS Gateway configuration
+const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || 'https://gateway.pinata.cloud';
 
 /**
- * Upload agent metadata to 0G Storage
- * Enhanced simulation with realistic 0G Storage behavior
+ * Upload agent metadata to IPFS via API route
  */
 export async function uploadAgentMetadata(metadata: AgentMetadata): Promise<StorageResult> {
   try {
-    console.log("🔥 Uploading to 0G Storage Network:", {
+    console.log("🔥 Uploading to IPFS Network:", {
       name: metadata.name,
-      category: metadata.category,
-      capabilities: metadata.capabilities.length
+      category: metadata.category
     });
     
-    const metadataJson = JSON.stringify(metadata, null, 2);
-    console.log(`📊 Metadata size: ${metadataJson.length} bytes`);
+    // Call server-side API route for Pinata upload
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
     
-    // Use real 0G Storage via API
-    const result = await uploadToZeroGStorage(metadataJson, 'metadata');
+    const response = await fetch('/api/storage/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ metadata }),
+      signal: controller.signal
+    });
     
-    console.log(`✅ Metadata uploaded to 0G Storage successfully!`);
-    console.log(`🔗 Root Hash: ${result.rootHash}`);
-    console.log(`⛓️ Transaction: ${result.txHash}`);
-    console.log(`🌐 URI: ${result.uri}`);
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Upload failed');
+    }
+    
+    console.log(`✅ Metadata uploaded to IPFS successfully!`);
+    console.log(`📦 IPFS Hash: ${result.hash}`);
     
     return result;
     
   } catch (error) {
-    console.error("❌ Failed to upload to 0G Storage:", error);
+    console.error("❌ Failed to upload to IPFS:", error);
+    
+    // Return error
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Upload failed"
+      error: error instanceof Error ? error.message : 'Upload failed'
     };
   }
 }
 
 /**
- * Retrieve agent metadata from 0G Storage
+ * Retrieve agent metadata from IPFS
  */
-export async function getAgentMetadata(uri: string): Promise<AgentMetadata | null> {
+export async function retrieveAgentMetadata(uri: string): Promise<AgentMetadata | null> {
   try {
-    console.log("📥 Retrieving from 0G Storage:", uri);
+    console.log("📥 Retrieving from IPFS:", uri);
     
-    const rootHash = uri.replace('0g://storage/', '');
-    
-    // Try real 0G Storage API first
-    try {
-      const response = await fetch('/api/storage/download', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ rootHash })
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          console.log("✅ Successfully retrieved metadata from 0G Storage");
-          return JSON.parse(result.data);
-        }
-      }
-    } catch (apiError) {
-      console.warn("⚠️ 0G Storage API failed, falling back to simulation:", apiError);
+    // Extract IPFS hash from URI (supports ipfs://, ipfs:/storage/, or raw hash)
+    let ipfsHash = uri;
+    if (uri.startsWith('ipfs://')) {
+      ipfsHash = uri.replace('ipfs://', '').replace('storage/', '');
     }
     
-    // Fallback to simulation
-    const data = await simulateZeroGRetrieve(rootHash);
+    // Try IPFS gateway
+    const url = `${IPFS_GATEWAY}/ipfs/${ipfsHash}`;
+    console.log("🌐 Fetching from:", url);
     
-    if (data) {
-      console.log("✅ Successfully retrieved metadata from 0G Storage (simulation)");
-      return JSON.parse(data);
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`IPFS fetch failed: ${response.status}`);
     }
     
-    console.log("❌ Metadata not found in 0G Storage");
-    return null;
+    const metadata = await response.json();
+    console.log("✅ Successfully retrieved metadata from IPFS");
+    return metadata;
     
   } catch (error) {
-    console.error("❌ Failed to retrieve from 0G Storage:", error);
+    console.error("❌ Failed to retrieve from IPFS:", error);
     return null;
   }
 }
 
 /**
- * Upload file to 0G Storage (for images, models, etc.)
+ * Upload file to IPFS (for images, models, etc.)
  */
-export async function uploadFile(file: File): Promise<StorageResult> {
+export async function uploadFileToIPFS(file: File): Promise<StorageResult> {
   try {
-    console.log(`📁 Uploading file to 0G Storage: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+    console.log(`📁 Uploading file to IPFS: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
     
-    // Convert file to base64 for storage simulation
-    const fileData = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s for files
+    
+    const response = await fetch('/api/storage/upload', {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal
     });
     
-    const result = await simulateZeroGUpload(fileData, 'file');
+    clearTimeout(timeoutId);
     
-    console.log(`✅ File uploaded to 0G Storage successfully!`);
-    console.log(`🔗 Root Hash: ${result.rootHash}`);
-    console.log(`⛓️ Transaction: ${result.txHash}`);
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'File upload failed');
+    }
+    
+    console.log(`✅ File uploaded to IPFS successfully!`);
     
     return {
-      ...result,
-      uri: `0g://storage/files/${result.rootHash}`
+      success: true,
+      hash: result.hash,
+      ipfsHash: result.hash,
+      uri: `ipfs://${result.hash}`
     };
     
   } catch (error) {
     console.error("❌ File upload failed:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "File upload failed"
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
 
-export async function persistChatLog(log: ChatLog): Promise<void> {
+/**
+ * Persist chat log to IPFS (optional feature)
+ */
+export async function persistChatLog(log: ChatLog): Promise<StorageResult> {
   try {
-    console.log("💬 Persisting chat log to 0G Storage:", log.agentId);
+    console.log("💬 Persisting chat log to IPFS:", log.agentId);
     
-    const logData = {
-      ...log,
-      type: "chat_log",
-      timestamp: new Date().toISOString()
+    const metadata = {
+      name: `Chat Log - ${log.agentId}`,
+      description: `Conversation history for agent ${log.agentId}`,
+      image: '',
+      creator: 'System',
+      category: 'ChatLog',
+      capabilities: ['chat-history'],
+      skills: ['conversation'],
+      price: '0',
+      created: log.createdAt,
+      updated: new Date().toISOString(),
+      chatData: log
     };
     
-    const result = await uploadAgentMetadata(logData as any);
+    const result = await uploadAgentMetadata(metadata as any);
     
     if (result.success) {
-      console.log("✅ Chat log persisted to 0G Storage:", result.uri);
-    } else {
-      console.error("❌ Failed to persist chat log:", result.error);
+      console.log("✅ Chat log persisted to IPFS:", result.uri);
     }
+    
+    return result;
+    
   } catch (error) {
-    console.error("❌ Error persisting chat log:", error);
-  }
-}
-
-/**
- * Upload large dataset to 0G DA Layer
- */
-export async function uploadToDA(data: unknown, metadata: { name: string; description: string; size: number }): Promise<StorageResult> {
-  try {
-    console.log("📊 Uploading large dataset to 0G DA Layer:", metadata.name);
-    
-    const dataJson = JSON.stringify(data);
-    const dataHash = `0g_da_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const uri = `0g://da/${dataHash}`;
-    
-    // Simulate DA processing time (longer for large data)
-    const processingTime = Math.max(2000, metadata.size / 1000);
-    await new Promise(resolve => setTimeout(resolve, processingTime));
-    
-    const daMetadata = {
-      ...metadata,
-      data: dataJson,
-      type: "dataset",
-      daContract: ZERO_G_DA_ENTRANCE,
-      timestamp: new Date().toISOString(),
-      chunks: Math.ceil(metadata.size / 1024),
-      availability: "high",
-      redundancy: 3
-    };
-    
-    localStorage.setItem(`0g_da_${dataHash}`, JSON.stringify(daMetadata));
-    
-    console.log(`✅ Dataset uploaded to 0G DA Layer: ${dataHash}`);
-    console.log(`📊 Chunks: ${daMetadata.chunks}, Redundancy: ${daMetadata.redundancy}`);
-    
-    return {
-      success: true,
-      hash: dataHash,
-      uri
-    };
-  } catch (error) {
+    console.error("❌ Failed to persist chat log:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "DA upload failed"
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
 
 /**
- * Get dataset from 0G DA Layer
+ * Get IPFS storage statistics (for dashboard)
  */
-export async function getFromDA(uri: string): Promise<unknown | null> {
-  try {
-    const hash = uri.replace('0g://da/', '');
-    
-    // ✅ PERFORMANS İYİLEŞTİRMESİ: Delay'i azalt
-    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200)); // 100-300ms instead of 300-800ms
-    
-    const stored = localStorage.getItem(`0g_da_${hash}`);
-    if (stored) {
-      const entry = JSON.parse(stored);
-      console.log(`📥 Retrieved dataset from 0G DA: ${entry.name} (${entry.chunks} chunks)`);
-      return JSON.parse(entry.data);
-    }
-    
-    return null;
-  } catch (error) {
-    console.error("❌ Failed to retrieve from 0G DA:", error);
-    return null;
-  }
-}
-
-/**
- * Get 0G DA Layer statistics
- */
-export async function getDAStats() {
-  const totalDatasets = Object.keys(localStorage).filter(key => key.startsWith('0g_da_')).length;
-  
+export async function getStorageStats(): Promise<{
+  network: string;
+  gateway: string;
+  available: boolean;
+}> {
   return {
-    network: "0G Data Availability",
-    daContract: ZERO_G_DA_ENTRANCE,
-    status: "online",
-    totalDatasets: totalDatasets + Math.floor(Math.random() * 100),
-    avgAvailability: "99.9%",
-    throughput: `${Math.floor(Math.random() * 50) + 75} MB/s`,
-    redundancyFactor: 3,
-    activeValidators: Math.floor(Math.random() * 20) + 40
+    network: "IPFS",
+    gateway: IPFS_GATEWAY,
+    available: true
   };
 }
 
 /**
- * Get storage statistics and info
+ * Test IPFS connection
  */
-export async function getStorageInfo() {
-  // Get local stats for backward compatibility
-  const storageItems = Object.keys(localStorage).filter(key => key.startsWith('0g_storage_'));
-  const daItems = Object.keys(localStorage).filter(key => key.startsWith('0g_da_'));
-  
-  return {
-    network: "0G Galileo Testnet",
-    rpcUrl: OG_RPC_URL,
-    indexerUrl: OG_INDEXER_URL,
-    status: "connected",
-    hasPrivateKey: !!OG_PRIVATE_KEY,
-    simulationMode: false, // Using real 0G Storage SDK via API
-    sdkVersion: "latest",
-    provider: "0G Storage Network",
-    flowContract: ZERO_G_STORAGE_FLOW,
-    daContract: ZERO_G_DA_ENTRANCE,
-    localStorageUploads: storageItems.length,
-    daUploads: daItems.length,
-    daStats: await getDAStats()
-  };
-}
-
-/**
- * Test 0G Storage connection
- */
-export async function testStorageConnection(): Promise<{ success: boolean; message: string; details?: unknown }> {
+export async function testStorageConnection(): Promise<{ 
+  success: boolean; 
+  message: string; 
+  network?: string;
+  gateway?: string;
+}> {
   try {
-    // Use real 0G Storage API connection test
+    // Call server-side test
     const response = await fetch('/api/storage/test');
     const result = await response.json();
-    return result;
+    
+    return {
+      ...result,
+      network: "IPFS via Pinata",
+      gateway: IPFS_GATEWAY
+    };
+    
   } catch (error) {
-    console.error('❌ Storage API test failed:', error);
+    console.error("❌ Storage connection test failed:", error);
     return {
       success: false,
-      message: `Storage API test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      details: error
+      message: error instanceof Error ? error.message : 'Connection test failed'
     };
   }
 }
 
 /**
- * Get real-time 0G Storage network metrics
+ * Convert URI to gateway URL for display
  */
-export async function getNetworkMetrics() {
-  // Simulate network metrics
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
-  return {
-    timestamp: new Date().toISOString(),
-    network: "0G Storage Network",
-    activeNodes: Math.floor(Math.random() * 50) + 100,
-    totalStorage: `${Math.floor(Math.random() * 500) + 1000} TB`,
-    utilizationRate: `${Math.floor(Math.random() * 30) + 60}%`,
-    avgUploadTime: `${Math.floor(Math.random() * 500) + 800}ms`,
-    avgDownloadTime: `${Math.floor(Math.random() * 200) + 300}ms`,
-    networkThroughput: `${Math.floor(Math.random() * 100) + 150} MB/s`,
-    redundancyFactor: 3,
-    dataAvailability: "99.99%"
-  };
+export function getIPFSGatewayUrl(uri: string): string {
+  let ipfsHash = uri;
+  if (uri.startsWith('ipfs://')) {
+    ipfsHash = uri.replace('ipfs://', '').replace('storage/', '');
+  }
+  return `${IPFS_GATEWAY}/ipfs/${ipfsHash}`;
 }

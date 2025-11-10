@@ -1,22 +1,18 @@
-// API route to test 0G Storage connection and configuration
+// API route to test IPFS/Pinata connection and configuration
 import { NextResponse } from 'next/server';
 import { testStorageConnectionServer } from '@/lib/serverStorage';
 
 export async function GET() {
   try {
-    console.log('🔍 Testing 0G Storage connection...');
+    console.log('🔍 Testing IPFS/Pinata connection...');
     
-    // Test basic configuration - Official 0G Galileo Testnet (Force official RPC)
+    // Test basic configuration
     const config = {
-      networkName: '0G-Galileo-Testnet',
-      chainId: 16602,
-      tokenSymbol: 'OG',
-      rpcUrl: 'https://evmrpc-testnet.0g.ai', // Force official RPC
-      explorer: 'https://chainscan-galileo.0g.ai',
-      faucet: 'https://faucet.0g.ai',
-      indexerUrl: process.env.NEXT_PUBLIC_0G_INDEXER_URL || 'https://indexer-storage-testnet-turbo.0g.ai',
-      hasPrivateKey: !!(process.env.PRIVATE_KEY || process.env.NEXT_PUBLIC_0G_PRIVATE_KEY),
-      envRpcUrl: process.env.NEXT_PUBLIC_0G_RPC_URL // Show what env says
+      networkName: 'IPFS via Pinata',
+      gateway: process.env.NEXT_PUBLIC_IPFS_GATEWAY || 'https://gateway.pinata.cloud',
+      hasPinataJWT: !!process.env.PINATA_JWT,
+      network: 'Polygon Amoy Testnet',
+      chainId: 80002
     };
     
     console.log('📋 Configuration check:', config);
@@ -30,10 +26,10 @@ export async function GET() {
       config,
       serverTest,
       recommendations: [
-        'Ensure you have sufficient balance in your wallet',
-        'Try using the fallback simulation if real storage fails',
-        'Check if testnet is experiencing temporary issues',
-        'Consider reducing file size if upload fails'
+        'Set PINATA_JWT environment variable for real IPFS uploads',
+        'Mock storage will be used if Pinata is not configured',
+        'Check Pinata dashboard for upload status',
+        'Ensure you have sufficient Pinata storage quota'
       ]
     });
     

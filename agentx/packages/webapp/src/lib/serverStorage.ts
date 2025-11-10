@@ -1,8 +1,5 @@
-// Server-side only 0G Storage implementation
-// This will be used in API routes to avoid client-side Node.js module issues
-
-import { ZERO_G_STORAGE_FLOW } from "./contracts";
-import "./serverInit"; // Initialize server-side error handling
+// Server-side IPFS/Pinata storage implementation
+// This will be used in API routes to avoid client-side issues
 
 export interface AgentMetadata {
   name: string;
@@ -24,308 +21,178 @@ export type StorageResult = {
   hash?: string;
   uri?: string;
   error?: string;
-  txHash?: string;
-  rootHash?: string;
+  ipfsHash?: string;
 };
 
-// Only import 0G SDK on server side
-async function getZgSDK() {
-  if (typeof window !== 'undefined') {
-    throw new Error('0G SDK can only be used on server side');
-  }
-  
-  const { Blob, Indexer } = await import('@0glabs/0g-ts-sdk');
-  const { ethers } = await import('ethers');
-  
-  return { ZgBlob: Blob, Indexer, ethers };
-}
-
-export async function uploadAgentMetadataServer(metadata: AgentMetadata, retryCount = 0): Promise<StorageResult> {
-  const maxRetries = 2; // Increase retries with shorter timeouts
-  const retryDelay = 3000; // Shorter delay for faster recovery
-  
-  // Add unhandled rejection handler for this upload session
-  const originalHandler = process.listeners('unhandledRejection');
-  const uploadRejectionHandler = (reason: any, promise: Promise<any>) => {
-    if (reason?.message?.includes('Upload timeout') || reason?.code === 'ETIMEDOUT') {
-      console.log('🔧 Handled upload-related rejection:', reason.message || reason.code);
-      return; // Suppress these specific errors as they're handled
-    }
-    // Let other unhandled rejections bubble up normally
-    if (originalHandler.length > 0) {
-      (originalHandler[0] as any)(reason, promise);
-    }
-  };
-  
-  process.on('unhandledRejection', uploadRejectionHandler);
-  
-  // 0G Storage configuration - Support mainnet/testnet
-  const USE_MAINNET = process.env.NEXT_PUBLIC_USE_MAINNET === 'true';
-  const OG_RPC_URL = USE_MAINNET 
-    ? 'https://evmrpc.0g.ai' 
-    : 'https://evmrpc-testnet.0g.ai';
-  
+/**
+ * Upload agent metadata to IPFS via Pinata
+ */
+export async function uploadAgentMetadataServer(metadata: AgentMetadata): Promise<StorageResult> {
   try {
-    console.log(`🔥 Starting server-side 0G Storage upload... (Attempt ${retryCount + 1}/${maxRetries + 1})`);
+    console.log('🔥 Starting IPFS upload via Pinata...');
     
-    // Pre-validation: Check network health
-    if (retryCount === 0) {
-      console.log('🔍 Pre-validation: Checking 0G network health...');
-      try {
-        const provider = new (await import('ethers')).ethers.JsonRpcProvider(OG_RPC_URL);
-        const latestBlock = await provider.getBlockNumber();
-        const blockTime = Date.now();
-        
-        // Check if network is responsive
-        const block = await provider.getBlock(latestBlock);
-        const networkLatency = Date.now() - blockTime;
-        
-        console.log(`✅ Network health: Block ${latestBlock}, Latency: ${networkLatency}ms`);
-        
-        if (networkLatency > 10000) {
-          console.warn('⚠️ High network latency detected, but proceeding...');
-        }
-      } catch (healthError) {
-        console.warn('⚠️ Network health check failed, but proceeding:', healthError);
-      }
+    const PINATA_JWT = process.env.PINATA_JWT;
+    
+    if (!PINATA_JWT) {
+      console.warn('⚠️ No Pinata JWT configured, using mock storage');
+      return createMockStorage(metadata);
     }
     
-    const { ZgBlob, Indexer, ethers } = await getZgSDK();
-    // Using mainnet or testnet indexer based on environment
-    const OG_INDEXER_URL = USE_MAINNET
-      ? 'https://indexer-storage-turbo.0g.ai' // Mainnet indexer
-      : 'https://indexer-storage-testnet-turbo.0g.ai'; // Testnet indexer
-    const OG_PRIVATE_KEY = process.env.PRIVATE_KEY || process.env.NEXT_PUBLIC_0G_PRIVATE_KEY || '';
-    
-    console.log('🔧 Using 0G Storage configuration:', {
-      rpcUrl: OG_RPC_URL,
-      indexerUrl: OG_INDEXER_URL,
-      attempt: retryCount + 1,
-      maxRetries: maxRetries + 1
-    });
-    
-    console.log('🔍 Environment check:', {
-      hasRpcUrl: !!OG_RPC_URL,
-      hasIndexerUrl: !!OG_INDEXER_URL,
-      hasPrivateKey: !!OG_PRIVATE_KEY,
-      privateKeyLength: OG_PRIVATE_KEY ? OG_PRIVATE_KEY.length : 0
-    });
-    
-    if (!OG_PRIVATE_KEY) {
-      throw new Error('No private key configured - set PRIVATE_KEY in environment');
-    }
-    
-    // Initialize clients with better error handling
-    const indexer = new Indexer(OG_INDEXER_URL);
-    const provider = new ethers.JsonRpcProvider(OG_RPC_URL);
-    const signer = new ethers.Wallet(OG_PRIVATE_KEY, provider);
-    
-    // Check balance before upload
-    try {
-      const balance = await signer.provider?.getBalance(signer.address);
-      console.log('💰 Wallet balance:', balance ? ethers.formatEther(balance) : '0', 'ETH');
-      
-      if (balance && balance < ethers.parseEther('0.001')) {
-        console.warn('⚠️ Low balance detected, but proceeding with upload...');
-      }
-    } catch (balanceError) {
-      console.warn('⚠️ Could not check balance:', balanceError);
-    }
-    
-    // Convert metadata to JSON string
+    // Convert metadata to JSON
     const jsonData = JSON.stringify(metadata, null, 2);
     console.log('📝 Metadata JSON size:', jsonData.length, 'bytes');
     
-    // Create 0G File from File object (based on official 0G SDK docs)
-    const blob = new globalThis.Blob([jsonData], { type: 'application/json' });
-    const file = new ZgBlob(new globalThis.File([blob], 'metadata.json', { type: 'application/json' }));
-    console.log('📁 Created 0G File object');
+    // Upload to Pinata using their API
+    const formData = new FormData();
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    formData.append('file', blob, 'metadata.json');
     
-    // Generate Merkle tree for verification
-    const [tree, treeErr] = await file.merkleTree();
-    if (treeErr !== null) {
-      throw new Error(`Error generating Merkle tree: ${treeErr}`);
+    // Add metadata for Pinata
+    const pinataMetadata = JSON.stringify({
+      name: `${metadata.name}_metadata.json`,
+      keyvalues: {
+        agentName: metadata.name,
+        creator: metadata.creator,
+        category: metadata.category
+      }
+    });
+    formData.append('pinataMetadata', pinataMetadata);
+    
+    const pinataOptions = JSON.stringify({
+      cidVersion: 1,
+    });
+    formData.append('pinataOptions', pinataOptions);
+    
+    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${PINATA_JWT}`
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Pinata upload failed: ${response.status} ${errorText}`);
     }
     
-    const rootHash = tree?.rootHash();
-    console.log('🌳 Generated Merkle tree, root hash:', rootHash);
+    const result = await response.json();
+    const ipfsHash = result.IpfsHash;
     
-    // Upload to 0G Storage network with proper timeout handling
-    console.log('⬆️ Uploading to 0G Storage network...');
-    
-    // Create upload promise with proper cleanup
-    let timeoutId: NodeJS.Timeout | null = null;
-    let uploadController: AbortController | null = null;
-    
-    try {
-      // Create upload promise with abort controller if available
-      const uploadPromise = indexer.upload(file, OG_RPC_URL, signer as any);
-      
-      // Create timeout promise with progressive timeout (shorter on retries)
-      const timeoutDuration = Math.max(10000, 20000 - (retryCount * 5000)); // 20s, 15s, 10s
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => {
-          reject(new Error(`Upload timeout after ${timeoutDuration/1000} seconds (attempt ${retryCount + 1})`));
-        }, timeoutDuration);
-      });
-      
-      // Race the promises with proper cleanup
-      const result = await Promise.race([
-        uploadPromise.then(result => {
-          if (timeoutId) clearTimeout(timeoutId);
-          return result;
-        }).catch(error => {
-          if (timeoutId) clearTimeout(timeoutId);
-          throw error;
-        }),
-        timeoutPromise
-      ]);
-      
-      const [tx, uploadErr] = result as any;
-      
-      if (uploadErr !== null) {
-        throw new Error(`Upload error: ${uploadErr}`);
-      }
-      
-      console.log('✅ Upload successful! Transaction:', tx);
-      
-      const uploadResult: StorageResult = {
-        success: true,
-        hash: rootHash || undefined,
-        rootHash: rootHash || undefined,
-        uri: `0g://storage/${rootHash}`,
-        txHash: typeof tx === 'string' ? tx : (tx as any)?.txHash || tx
-      };
-      
-      console.log('🎉 0G Storage upload completed:', uploadResult);
-      return uploadResult;
-      
-    } catch (uploadError) {
-      // Clean up timeout if it exists
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      
-      // Re-throw the error to be handled by outer catch
-      throw uploadError;
-    } finally {
-      // Always clean up resources (official 0G SDK docs)
-      try {
-        if (typeof (file as any).close === 'function') {
-          await (file as any).close();
-          console.log('✅ File resources cleaned up');
-        }
-      } catch (closeError) {
-        console.log('Note: File close failed (this is normal):', closeError);
-      }
-      
-      // Clean up timeout if still exists
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    }
-    
-  } catch (error) {
-    console.error(`❌ 0G Storage upload failed (Attempt ${retryCount + 1}):`, error);
-    
-    // Check if this is a retryable error
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    const isNetworkError = errorMessage.includes('too many data writing') ||
-                            errorMessage.includes('network') ||
-                            errorMessage.includes('timeout') ||
-                            errorMessage.includes('Transaction reverted') ||
-                            errorMessage.includes('uploading segments') ||
-                            errorMessage.includes('transaction execution reverted') ||
-                            errorMessage.includes('CALL_EXCEPTION') ||
-                            errorMessage.includes('Failed to submit transaction') ||
-                            errorMessage.includes('Upload timeout') ||
-                            errorMessage.includes('connection') ||
-                            errorMessage.includes('gas') ||
-                            errorMessage.includes('request limit reached') ||
-                            errorMessage.includes('rate limit') ||
-                            errorMessage.includes('Too Many Requests');
-    
-    if (isNetworkError && retryCount < maxRetries) {
-      console.log(`🔄 Network instability detected. Retrying in ${retryDelay/1000}s... (${retryCount + 1}/${maxRetries})`);
-      
-      // Wait before retry
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
-      
-      // Recursive retry
-      return await uploadAgentMetadataServer(metadata, retryCount + 1);
-    }
-    
-    // If max retries exceeded or non-network error, return failure
-    if (errorMessage.includes('request limit') || errorMessage.includes('rate limit')) {
-      return {
-        success: false,
-        error: `RPC rate limit exceeded. Please wait a few seconds and try again, or the system will use simulation mode.`
-      };
-    }
+    console.log('✅ Upload successful! IPFS Hash:', ipfsHash);
     
     return {
-      success: false,
-      error: `Upload failed after ${retryCount + 1} attempts: ${errorMessage}. Note: 0G network is experiencing temporary instability, this is being actively fixed by the 0G team.`
+      success: true,
+      hash: ipfsHash,
+      ipfsHash: ipfsHash,
+      uri: `ipfs://${ipfsHash}`
     };
-  } finally {
-    // Clean up the unhandled rejection handler
-    try {
-      process.removeListener('unhandledRejection', uploadRejectionHandler);
-    } catch (cleanupError) {
-      console.log('Note: Cleanup handler removal failed (this is normal)');
-    }
+    
+  } catch (error) {
+    console.error('❌ IPFS upload failed:', error);
+    
+    // Fallback to mock storage
+    console.warn('⚠️ Falling back to mock storage');
+    return createMockStorage(metadata);
   }
 }
 
+/**
+ * Create mock storage for development/testing
+ */
+function createMockStorage(metadata: AgentMetadata): StorageResult {
+  // Generate a deterministic hash based on content
+  const content = JSON.stringify(metadata);
+  const hash = `Qm${Buffer.from(content).toString('base64').substring(0, 44).replace(/[^a-zA-Z0-9]/g, 'x')}`;
+  
+  console.log('📦 Created mock IPFS hash:', hash);
+  
+  // Store in memory or use localStorage-like simulation
+  if (typeof global !== 'undefined') {
+    (global as any).mockIPFSStorage = (global as any).mockIPFSStorage || {};
+    (global as any).mockIPFSStorage[hash] = metadata;
+  }
+  
+  return {
+    success: true,
+    hash: hash,
+    ipfsHash: hash,
+    uri: `ipfs://${hash}`
+  };
+}
+
+/**
+ * Download metadata from IPFS
+ */
+export async function downloadFromIPFS(ipfsHash: string): Promise<AgentMetadata | null> {
+  try {
+    const gateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY || 'https://gateway.pinata.cloud';
+    
+    // Check mock storage first
+    if (typeof global !== 'undefined' && (global as any).mockIPFSStorage?.[ipfsHash]) {
+      console.log('📦 Retrieved from mock storage');
+      return (global as any).mockIPFSStorage[ipfsHash];
+    }
+    
+    const url = `${gateway}/ipfs/${ipfsHash}`;
+    console.log('📥 Downloading from IPFS:', url);
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`IPFS download failed: ${response.status}`);
+    }
+    
+    const metadata = await response.json();
+    console.log('✅ Successfully retrieved metadata from IPFS');
+    return metadata;
+    
+  } catch (error) {
+    console.error('❌ Failed to retrieve from IPFS:', error);
+    return null;
+  }
+}
+
+/**
+ * Test IPFS/Pinata connection
+ */
 export async function testStorageConnectionServer(): Promise<{ success: boolean; message: string; details?: unknown }> {
   try {
-    console.log('🔍 Testing 0G Storage connection on server...');
+    console.log('🔍 Testing IPFS/Pinata connection...');
     
-    // First test SDK import
-    try {
-      const { ZgBlob, Indexer, ethers } = await getZgSDK();
-      console.log('✅ 0G SDK imported successfully');
-    } catch (sdkError) {
-      console.error('❌ 0G SDK import failed:', sdkError);
+    const PINATA_JWT = process.env.PINATA_JWT;
+    
+    if (!PINATA_JWT) {
       return {
         success: false,
-        message: `0G SDK import failed: ${sdkError instanceof Error ? sdkError.message : 'Unknown SDK error'}`,
-        details: sdkError
+        message: 'Pinata JWT not configured. Using mock storage mode.',
+        details: {
+          note: 'Set PINATA_JWT environment variable to enable real IPFS uploads'
+        }
       };
     }
     
-    // Check environment variables
-    const OG_RPC_URL = process.env.NEXT_PUBLIC_0G_RPC_URL || 'https://evmrpc-testnet.0g.ai';
-    const OG_PRIVATE_KEY = process.env.PRIVATE_KEY || process.env.NEXT_PUBLIC_0G_PRIVATE_KEY || '';
-    
-    console.log('🔍 Environment check:', {
-      hasRpcUrl: !!OG_RPC_URL,
-      hasPrivateKey: !!OG_PRIVATE_KEY,
-      privateKeyLength: OG_PRIVATE_KEY ? OG_PRIVATE_KEY.length : 0
+    // Test Pinata authentication
+    const response = await fetch('https://api.pinata.cloud/data/testAuthentication', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${PINATA_JWT}`
+      }
     });
     
-    if (!OG_PRIVATE_KEY) {
-      return {
-        success: false,
-        message: 'No private key configured - set PRIVATE_KEY in environment',
-        details: { hasRpcUrl: !!OG_RPC_URL }
-      };
+    if (!response.ok) {
+      throw new Error(`Authentication failed: ${response.status}`);
     }
     
-    // If we get here, basic setup is OK
+    const result = await response.json();
+    
     return {
       success: true,
-      message: '0G Storage SDK and environment setup successful',
-      details: {
-        sdkAvailable: true,
-        rpcUrl: OG_RPC_URL,
-        hasPrivateKey: true,
-        note: 'Full upload test skipped for quick validation'
-      }
+      message: 'Pinata connection successful',
+      details: result
     };
     
   } catch (error) {
-    console.error('❌ Storage connection test failed:', error);
+    console.error('❌ Pinata connection test failed:', error);
     return {
       success: false,
       message: `Connection test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

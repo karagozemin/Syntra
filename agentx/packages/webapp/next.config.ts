@@ -25,33 +25,15 @@ const nextConfig: NextConfig = {
     ],
   },
   webpack: (config, { isServer }) => {
-    // Handle Node.js modules for 0G SDK
+    // Minimal webpack config for Polygon/IPFS (no heavy polyfills needed)
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
-        'fs/promises': false,
         net: false,
         tls: false,
-        crypto: require.resolve('crypto-browserify'),
-        stream: require.resolve('stream-browserify'),
-        buffer: require.resolve('buffer'),
-        process: require.resolve('process/browser'),
-        'node:crypto': require.resolve('crypto-browserify'),
-        'node:fs/promises': false,
-        'node:fs': false,
-        'node:stream': require.resolve('stream-browserify'),
-        'node:buffer': require.resolve('buffer'),
       };
     }
-    
-    // Add polyfills
-    config.plugins.push(
-      new (require('webpack')).ProvidePlugin({
-        Buffer: ['buffer', 'Buffer'],
-        process: 'process/browser',
-      })
-    );
     
     return config;
   },

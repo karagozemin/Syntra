@@ -1,44 +1,24 @@
-// 0G Network Configuration - Supports both Testnet and Mainnet
-const USE_MAINNET = process.env.NEXT_PUBLIC_USE_MAINNET === 'true';
+// Polygon Network Configuration
+export const CHAIN_ID = 80002; // Polygon Amoy Testnet
+export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/';
+export const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://amoy.polygonscan.com';
+export const FAUCET_URL = 'https://faucet.polygon.technology/';
+export const TOKEN_SYMBOL = 'MATIC';
+export const NETWORK_NAME = 'Polygon Amoy Testnet';
 
-export const ZERO_G_CHAIN_ID = USE_MAINNET ? 16661 : 16602; // Mainnet: 16661, Testnet: 16602
-export const ZERO_G_RPC_URL = USE_MAINNET 
-  ? 'https://evmrpc.0g.ai'  // Mainnet
-  : 'https://evmrpc-testnet.0g.ai'; // Testnet
-export const ZERO_G_EXPLORER = USE_MAINNET
-  ? 'https://chainscan.0g.ai' // Mainnet
-  : 'https://chainscan-galileo.0g.ai'; // Testnet
-export const ZERO_G_FAUCET = 'https://faucet.0g.ai';
-export const ZERO_G_TOKEN_SYMBOL = '0G';
-export const ZERO_G_NETWORK_NAME = USE_MAINNET ? '0G-Mainnet' : '0G-Testnet-Galileo';
-
-// Contract Addresses
+// Contract Addresses (will be populated after deployment)
 export const AGENT_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS;
-export const INFT_ADDRESS = process.env.NEXT_PUBLIC_INFT_ADDRESS || "0xbD5C5a4947497f531a156DE720E04065362783ff"; // Enhanced INFT with mint()
-export const MARKETPLACE_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS || "0x0a3874E432F8Ab6B2b8f595b921E1C5ea32C5060"; // OLD WORKING Marketplace
-export const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS || "0x9822af5443B3862ff1d4B22D11887edD3D7F0ac9"; // OLD Working Factory
+export const INFT_ADDRESS = process.env.NEXT_PUBLIC_INFT_ADDRESS;
+export const MARKETPLACE_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS;
+export const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS;
 
 console.log("🔍 Environment check:", {
-  NEXT_PUBLIC_FACTORY_ADDRESS: process.env.NEXT_PUBLIC_FACTORY_ADDRESS,
-  FACTORY_ADDRESS: FACTORY_ADDRESS,
-  NEXT_PUBLIC_MARKETPLACE_ADDRESS: process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS,
-  MARKETPLACE_ADDRESS: MARKETPLACE_ADDRESS
+  CHAIN_ID,
+  RPC_URL,
+  FACTORY_ADDRESS,
+  MARKETPLACE_ADDRESS,
+  INFT_ADDRESS
 });
-
-// 0G Storage Contract Addresses (Mainnet/Testnet)
-export const ZERO_G_STORAGE_FLOW = USE_MAINNET
-  ? "0x62D4144dB0F0a6fBBaeb6296c785C71B3D57C526" // Mainnet
-  : "0xbD75117F80b4E22698D0Cd7612d92BDb8eaff628"; // Testnet
-export const ZERO_G_STORAGE_MINE = USE_MAINNET
-  ? "0xCd01c5Cd953971CE4C2c9bFb95610236a7F414fe" // Mainnet
-  : "0x3A0d1d67497Ad770d6f72e7f4B8F0BAbaa2A649C"; // Testnet
-export const ZERO_G_STORAGE_REWARD = USE_MAINNET
-  ? "0x457aC76B58ffcDc118AABD6DbC63ff9072880870" // Mainnet
-  : "0xd3D4D91125D76112AE256327410Dd0414Ee08Cb4"; // Testnet
-// Note: MARKET contract not used by SDK
-
-// 0G DA Contract Address
-export const ZERO_G_DA_ENTRANCE = process.env.NEXT_PUBLIC_0G_DA_ENTRANCE;
 
 export const AGENT_REGISTRY_ABI = [
   {

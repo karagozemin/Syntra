@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Upload, Zap, Eye, Info, Wallet, Share2, ShoppingCart, LayoutGrid } from "lucide-react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { FACTORY_ADDRESS, FACTORY_ABI, AGENT_NFT_ABI, INFT_ABI, MARKETPLACE_ADDRESS, MARKETPLACE_ABI, ZERO_G_CHAIN_ID } from "@/lib/contracts";
+import { FACTORY_ADDRESS, FACTORY_ABI, AGENT_NFT_ABI, INFT_ABI, MARKETPLACE_ADDRESS, MARKETPLACE_ABI, CHAIN_ID } from "@/lib/contracts";
 import { uploadAgentMetadata, type AgentMetadata } from "@/lib/storage";
-import { parseEther } from "viem";
+import { parseEther, formatEther } from "viem";
 import { saveUnifiedAgent } from "@/lib/unifiedAgents";
 import { saveListingToServer } from "@/lib/marketplaceListings";
 import { Navbar } from "@/components/Navbar";
@@ -192,11 +192,11 @@ export default function CreatePage() {
       };
 
       updateProgress("✅ Step 1: Metadata prepared successfully");
-      console.log("🔥 Step 1: Creating AI Agent with 0G Storage integration:", metadata);
+      console.log("🔥 Step 1: Creating AI Agent with IPFS Storage integration:", metadata);
 
-      // Step 2: Upload metadata to 0G Storage with timeout
-      updateProgress("🔄 Step 2: Uploading to 0G Storage Network...");
-      console.log("📤 Step 2: Uploading metadata to 0G Storage...");
+      // Step 2: Upload metadata to IPFS with timeout
+      updateProgress("🔄 Step 2: Uploading to IPFS Network...");
+      console.log("📤 Step 2: Uploading metadata to IPFS...");
       
       const uploadPromise = uploadAgentMetadata(metadata);
       const timeoutPromise = new Promise<never>((_, reject) => 
@@ -209,7 +209,7 @@ export default function CreatePage() {
         setStorageResult(uploadResult);
         
         if (!uploadResult.success) {
-          throw new Error(`0G Storage upload failed: ${uploadResult.error}`);
+          throw new Error(`IPFS Storage upload failed: ${uploadResult.error}`);
         }
       } catch (error) {
         console.log("⚠️ Storage upload failed, using fallback URI");
@@ -225,8 +225,8 @@ export default function CreatePage() {
         setStorageResult(uploadResult);
       }
 
-      updateProgress(`✅ Step 2: Uploaded to 0G Storage: ${uploadResult.uri?.slice(0, 30)}...`);
-      console.log("✅ Step 2: Agent metadata uploaded to 0G Storage:", uploadResult.uri);
+      updateProgress(`✅ Step 2: Uploaded to IPFS: ${uploadResult.uri?.slice(0, 30)}...`);
+      console.log("✅ Step 2: Agent metadata uploaded to IPFS:", uploadResult.uri);
 
       // Step 3: Create Agent Contract via Factory
       updateProgress("🎯 Step 3: Creating Agent Contract...");
@@ -266,8 +266,8 @@ export default function CreatePage() {
         address: FACTORY_ADDRESS,
         functionName: "createAgent",
         args: finalArgs,
-        value: "0.002 ETH",
-        gas: "3000000"
+        value: formatEther(parseEther("0.0001")) + " MATIC",
+        gas: "1500000"
       });
       
       console.log("🔍 Wallet connection status:", {
@@ -281,8 +281,8 @@ export default function CreatePage() {
         abi: FACTORY_ABI,
         functionName: "createAgent",
         args: finalArgs,
-        value: parseEther("0.01"), // Factory creation fee (contract requirement)
-        gas: BigInt(5000000), // Increased gas limit for mainnet deployment
+        value: parseEther("0.0001"), // Factory creation fee (0.0001 MATIC)
+        // Let Wagmi estimate gas automatically - no manual gas settings
       });
 
       updateProgress("✅ Step 3: Agent Contract creation submitted - waiting for confirmation...");
@@ -290,17 +290,18 @@ export default function CreatePage() {
       
     } catch (error) {
       console.error("Agent creation error:", error);
+      console.error("Full error details:", JSON.stringify(error, null, 2));
       
       // Enhanced error handling with progress tracking
       let errorMessage = "Unknown error occurred";
       
       if (error instanceof Error) {
         if (error.message.includes('timeout')) {
-          errorMessage = "⏰ Operation timed out - 0G network is busy. Please try again.";
+          errorMessage = "⏰ Operation timed out - Polygon network is busy. Please try again.";
           updateProgress("❌ Timeout - please try again");
         } else if (error.message.includes('Storage')) {
-          errorMessage = "📦 0G Storage upload failed - please try again";
-          updateProgress("❌ 0G Storage upload failed - please try again");
+          errorMessage = "📦 IPFS Storage upload failed - please try again";
+          updateProgress("❌ IPFS Storage upload failed - please try again");
         } else if (error.message.includes('network') || error.message.includes('Network')) {
           errorMessage = "🌐 Network connectivity issue - please try again";
           updateProgress("❌ Network issue - please try again");
@@ -308,7 +309,7 @@ export default function CreatePage() {
           errorMessage = "❌ Transaction rejected by user";
           updateProgress("❌ User cancelled transaction");
         } else if (error.message.includes('insufficient funds')) {
-          errorMessage = "💰 Insufficient balance (need ≥0.006 OG tokens)";
+          errorMessage = "💰 Insufficient balance (need ~0.02 MATIC)";
           updateProgress("❌ Insufficient balance for transaction");
         } else {
           errorMessage = error.message;
@@ -320,13 +321,13 @@ export default function CreatePage() {
       if (storageResult && storageResult.success) {
         console.log("✅ Storage was successful, showing partial success");
         updateProgress("✅ Storage upload completed successfully!");
-        updateProgress("⚠️ Some steps had issues, but your data is safely stored on 0G Network");
+        updateProgress("⚠️ Some steps had issues, but your data is safely stored on IPFS");
         
         setCreatedAgent({
           name: name,
           description: desc,
           contractAddress: "Partially created - storage successful",
-          storageUri: storageResult.uri || "0g://storage/success",
+          storageUri: storageResult.uri || "ipfs://storage/success",
           txHash: "Storage completed successfully"
         });
         
@@ -343,19 +344,19 @@ export default function CreatePage() {
   useEffect(() => {
     if (isCreateSuccess && createHash && !agentContractAddress) {
       updateProgress("✅ Agent contract created successfully!");
-      console.log("Agent Contract created on 0G Network!");
+      console.log("Agent Contract created on Polygon Amoy!");
       
       const extractContractAddress = async () => {
         try {
           updateProgress("🔍 Extracting agent contract address...");
           
-          // Wait longer for transaction to be indexed on 0G network
+          // Wait longer for transaction to be indexed on Polygon network
           await new Promise(resolve => setTimeout(resolve, 5000));
           
           // Method 1: Parse transaction receipt for AgentContractCreated event
           console.log("🎯 Getting transaction receipt for hash:", createHash);
           
-          const txReceipt = await fetch(`https://evmrpc.0g.ai/`, {
+          const txReceipt = await fetch(process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -373,99 +374,70 @@ export default function CreatePage() {
           if (txResult.result?.logs && txResult.result.logs.length > 0) {
             console.log("🔍 Found", txResult.result.logs.length, "logs in transaction");
             
-            // AgentContractCreated event signature (correct without extra chars)
+            // AgentContractCreated event signature: AgentContractCreated(address indexed agentContract, address indexed creator, string agentName, uint256 price)
             const agentCreatedSignature = "0x85f0dfa9fd3e33e38f73b68fc46905218786e8b028cf1b07fa0ed436b53b0227";
             
-            // IMPORTANT: The first log is from the newly deployed AgentNFT contract
-            // Its address field IS the new contract address!
-            if (txResult.result.logs.length >= 2) {
-              // Log 0: OwnershipTransferred from AgentNFT constructor
-              // Log 1: AgentContractCreated from Factory
-              const firstLog = txResult.result.logs[0];
-              const contractAddress = firstLog.address.toLowerCase();
-              
-              console.log("🎯 New Agent Contract Address (from log 0):", contractAddress);
-              
-              if (contractAddress && contractAddress.length === 42 && contractAddress.startsWith('0x')) {
-                setAgentContractAddress(contractAddress);
-                updateProgress("✅ Agent contract found: " + contractAddress);
-                updateProgress("🔄 Step 4: Minting NFT...");
-                
-                // Step 4: Mint NFT on the agent contract
-                console.log("🔄 Step 4: Minting NFT on agent contract...");
-                
-                try {
-                  console.log("🔥 About to call writeMint with:", {
-                    address: contractAddress,
-                    functionName: "mint",
-                    args: [storageResult?.uri || ""],
-                    abi: "AGENT_NFT_ABI"
-                  });
-                  
-                  writeMint({
-                    address: contractAddress as `0x${string}`,
-                    abi: AGENT_NFT_ABI,
-                    functionName: "mint",
-                    args: [storageResult?.uri || ""], // Use storage URI for tokenURI
-                  });
-                  
-                  updateProgress("✅ Step 4: NFT minting submitted...");
-                  console.log("✅ Step 4: NFT minting submitted");
-                  
-                } catch (mintError) {
-                  console.error("❌ NFT minting failed:", mintError);
-                  updateProgress("❌ NFT minting failed");
-                }
-                
-                return;
-              }
-            }
+            // Find the AgentContractCreated event from Factory
+            let contractAddress = null;
             
-            // Fallback: Try to find AgentContractCreated event
             for (const log of txResult.result.logs) {
               console.log("🔍 Checking log:", {
                 address: log.address,
                 topics: log.topics,
-                data: log.data
               });
               
-              if (log.topics && log.topics[0] === agentCreatedSignature && log.topics[1]) {
-                const contractAddress = "0x" + log.topics[1].slice(-40);
-                console.log("🎯 Extracted Agent Contract Address from event:", contractAddress);
-                
-                if (contractAddress.length === 42 && contractAddress.startsWith('0x')) {
-                  setAgentContractAddress(contractAddress);
-                  updateProgress("✅ Agent contract found: " + contractAddress);
-                  updateProgress("🔄 Step 4: Minting NFT...");
-                  
-                  try {
-                    writeMint({
-                      address: contractAddress as `0x${string}`,
-                      abi: AGENT_NFT_ABI,
-                      functionName: "mint",
-                      args: [storageResult?.uri || ""],
-                    });
-                    
-                    updateProgress("✅ Step 4: NFT minting submitted...");
-                    console.log("✅ Step 4: NFT minting submitted");
-                  } catch (mintError) {
-                    console.error("❌ NFT minting failed:", mintError);
-                    updateProgress("❌ NFT minting failed");
-                  }
-                  
-                  return;
-                }
+              // Check if this is the AgentContractCreated event
+              if (log.topics && log.topics[0] === agentCreatedSignature) {
+                // First indexed parameter (agentContract address) is in topics[1]
+                contractAddress = "0x" + log.topics[1].slice(-40);
+                console.log("🎯 Found AgentContractCreated event! Contract:", contractAddress);
+                break;
               }
             }
             
-            console.log("⚠️ Could not extract contract address from logs, trying factory fallback");
+            // If found via event signature
+            if (contractAddress && contractAddress.length === 42 && contractAddress.startsWith('0x') && contractAddress !== '0x0000000000000000000000000000000000000000') {
+              setAgentContractAddress(contractAddress);
+              updateProgress("✅ Agent contract found: " + contractAddress);
+              updateProgress("🔄 Step 4: Minting NFT...");
+              
+              // Step 4: Mint NFT on the agent contract
+              console.log("🔄 Step 4: Minting NFT on agent contract...");
+              
+              try {
+                console.log("🔥 About to call writeMint with:", {
+                  address: contractAddress,
+                  functionName: "mint",
+                  args: [storageResult?.uri || ""],
+                  abi: "AGENT_NFT_ABI"
+                });
+                
+                writeMint({
+                  address: contractAddress as `0x${string}`,
+                  abi: AGENT_NFT_ABI,
+                  functionName: "mint",
+                  args: [storageResult?.uri || ""], // Use storage URI for tokenURI
+                });
+                
+                updateProgress("✅ Step 4: NFT minting submitted...");
+                console.log("✅ Step 4: NFT minting submitted");
+                
+              } catch (mintError) {
+                console.error("❌ NFT minting failed:", mintError);
+                updateProgress("❌ NFT minting failed");
+              }
+              
+              return;
+            }
+            
+            console.log("⚠️ Could not find AgentContractCreated event, trying factory fallback");
           }
           
           // Fallback: Get latest agent from factory
           console.log("🔄 Fallback: Getting latest agent from factory");
           updateProgress("🔄 Using factory fallback method...");
           
-          const totalResponse = await fetch(`https://evmrpc.0g.ai/`, {
+          const totalResponse = await fetch(process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -488,7 +460,7 @@ export default function CreatePage() {
           
           if (totalAgents > 0) {
             // Get the latest agent (last one created)
-            const latestResponse = await fetch(`https://evmrpc.0g.ai/`, {
+            const latestResponse = await fetch(process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -1355,7 +1327,7 @@ export default function CreatePage() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Chain ID</span>
                     <Badge variant="outline" className="border-purple-400/50 text-purple-300">
-                      {ZERO_G_CHAIN_ID}
+                      {CHAIN_ID}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
@@ -1394,20 +1366,20 @@ export default function CreatePage() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Creation Fee</span>
                     <Badge variant="outline" className="border-purple-400/50 text-purple-300">
-                      0.01 OG
+                      0.0001 MATIC
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-300">Network Fee</span>
+                    <span className="text-gray-300">Network Fee (Gas)</span>
                     <Badge variant="outline" className="border-green-400/50 text-green-300">
-                      ~0.001 OG
+                      ~0.002 MATIC
                     </Badge>
                   </div>
                   <div className="border-t border-white/10 pt-3">
                     <div className="flex justify-between items-center font-semibold">
                       <span className="text-white">Total Estimated</span>
                       <Badge variant="outline" className="border-yellow-400/50 text-yellow-300">
-                        ~0.012 OG
+                        ~0.003 MATIC
                       </Badge>
                   </div>
                   </div>

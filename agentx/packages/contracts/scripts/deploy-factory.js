@@ -35,7 +35,7 @@ async function main() {
     const marketplaceAddr = await factory.marketplace();
     const totalAgents = await factory.getTotalAgents();
     
-    console.log("Creation Fee:", ethers.formatEther(creationFee), "OG");
+    console.log("Creation Fee:", ethers.formatEther(creationFee), "MATIC");
     console.log("Marketplace:", marketplaceAddr);
     console.log("Total Agents:", totalAgents.toString());
     

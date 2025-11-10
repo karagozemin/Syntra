@@ -159,7 +159,7 @@ contract AgentNFT is ERC721, ERC721URIStorage, Ownable {
 contract AgentNFTFactory {
     address public marketplace;
     address public owner;
-    uint256 public creationFee = 0.01 ether;
+    uint256 public creationFee = 0.0001 ether; // 0.0001 MATIC creation fee
     
     // Track created agents
     mapping(address => address[]) public creatorAgents;

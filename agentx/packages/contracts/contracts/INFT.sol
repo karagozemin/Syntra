@@ -9,7 +9,7 @@ contract INFT is ERC721, ERC721URIStorage, Ownable {
     uint256 private _nextTokenId = 1;
     
     // Fee system
-    uint256 public creationFee = 0.005 ether; // 0.005 OG creation fee
+    uint256 public creationFee = 0.0001 ether; // 0.0001 MATIC creation fee
     address public feeRecipient;
 
     event AgentCreated(uint256 indexed tokenId, address indexed creator, string tokenURI);

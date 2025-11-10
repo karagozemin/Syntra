@@ -5,16 +5,18 @@
   "main": "index.js",
   "scripts": {
     "build": "hardhat compile",
-    "deploy:og": "hardhat run scripts/deploy.js --network og_galileo",
-    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
-    "deploy-enhanced": "hardhat run scripts/deploy-enhanced.js --network og_galileo",
-    "deploy-factory": "hardhat run scripts/deploy-factory.js --network og_galileo",
+    "deploy": "hardhat run scripts/deploy.js --network polygon_amoy",
+    "deploy-factory": "hardhat run scripts/deploy-factory.js --network polygon_amoy",
+    "deploy-enhanced": "hardhat run scripts/deploy-enhanced.js --network polygon_amoy",
     "test": "hardhat test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.2.1"
+  },
   "devDependencies": {
     "@ethereumjs/util": "^8.1.0",
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
@@ -29,9 +31,8 @@
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^24.3.0",
+    "@types/node": "^20.0.0",
     "chai": "^4.5.0",
-    "dotenv": "^17.2.1",
     "ethers": "^6.15.0",
     "hardhat": "^2.26.3",
     "hardhat-gas-reporter": "^2.3.0",

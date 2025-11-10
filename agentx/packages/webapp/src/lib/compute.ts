@@ -1,6 +1,6 @@
-import { ZERO_G_CHAIN_ID } from "./contracts";
-// Note: 0G Compute SDK will be added here in future updates
-// import { ServingBroker } from '@0glabs/0g-serving-broker';
+import { CHAIN_ID } from "./contracts";
+// Note: AI Compute integration can be added here in future updates
+// Using mock/simulation mode for now
 
 export type ChatMessage = { 
   role: "user" | "agent" | "system"; 
@@ -220,7 +220,7 @@ export async function getComputeNetworkStatus() {
     status: "online",
     activeNodes,
     avgResponseTime,
-    chainId: ZERO_G_CHAIN_ID,
+    chainId: CHAIN_ID,
     modelsAvailable: 8,
     totalRequests24h: Math.floor(Math.random() * 10000) + 5000,
     networkUtilization: `${Math.floor(Math.random() * 30) + 45}%`,

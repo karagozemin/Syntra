@@ -4,8 +4,7 @@ dotenvConfig();
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 
-const OG_RPC_URL = process.env.OG_RPC_URL || "";
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || "";
+const POLYGON_RPC_URL = process.env.POLYGON_RPC_URL || "https://rpc-amoy.polygon.technology/";
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 
 const accounts = PRIVATE_KEY ? [PRIVATE_KEY] : [];
@@ -18,31 +17,30 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    og_galileo: {
-      chainId: 16602, // Galileo testnet
-      url: OG_RPC_URL || "https://evmrpc-testnet.0g.ai",
+    polygon_amoy: {
+      chainId: 80002, // Polygon Amoy Testnet
+      url: POLYGON_RPC_URL,
       accounts,
-      gasPrice: 3000000000, // 3 gwei
-      gas: 5000000,
+      // Gas price ve limit otomatik hesaplanacak (çok daha ucuz)
     },
-    og_mainnet: {
-      chainId: 16661, // 0G Aristotle Mainnet (Official)
-      url: process.env.OG_MAINNET_RPC_URL || "https://evmrpc.0g.ai",
-      accounts,
-      gasPrice: 3000000000, // 3 gwei
-      gas: 5000000,
-    },
-    sepolia: {
-      chainId: 11155111,
-      url: SEPOLIA_RPC_URL || "",
-      accounts,
+    hardhat: {
+      chainId: 31337,
     },
   },
   etherscan: {
     apiKey: {
-      // Fill when needed
-      sepolia: process.env.ETHERSCAN_API_KEY || "",
+      polygonAmoy: process.env.POLYGONSCAN_API_KEY || "",
     },
+    customChains: [
+      {
+        network: "polygonAmoy",
+        chainId: 80002,
+        urls: {
+          apiURL: "https://api-amoy.polygonscan.com/api",
+          browserURL: "https://amoy.polygonscan.com"
+        }
+      }
+    ]
   },
 };
 
