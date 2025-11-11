@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="agentx/packages/webapp/public/favicon.png" alt="Syntra Logo" width="200" />
+  <img src="agentx/packages/webapp/public/favicon.png" alt="Syntra Logo" width="250" />
   
   # 🤖 Syntra - AI-Powered NFT Marketplace
   
