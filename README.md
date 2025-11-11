@@ -1,6 +1,5 @@
 <div align="center">
   <img src="agentx/packages/webapp/public/favicon.png" alt="Syntra Logo" width="250" />
-  
   # 🤖 Syntra - AI-Powered NFT Marketplace
   
   > **A decentralized marketplace for AI-powered Intelligent NFTs, built on Polygon Amoy Testnet**
