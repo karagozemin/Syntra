@@ -355,45 +355,6 @@ export default function MyCollectionsPage() {
 
         {/* Collections Grid */}
         {myAgents.length === 0 && ownedNFTs.length === 0 ? (
-          <div className="space-y-6">
-            {/* Debug Info Card */}
-            <Card className="gradient-card border-yellow-400/30 bg-yellow-500/5">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <Info className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-1" />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-yellow-300 mb-2">
-                      🔍 NFT'ler Görünmüyor mu?
-                    </h3>
-                    <div className="space-y-3 text-sm text-gray-300">
-                      <p>Eğer agent oluşturduysanız ama burada görünmüyorsa:</p>
-                      <ul className="list-disc list-inside space-y-2 ml-2">
-                        <li>Browser console'u açın (F12) ve hata mesajlarını kontrol edin</li>
-                        <li>Supabase bağlantısının çalışıp çalışmadığını test edin: 
-                          <a 
-                            href="/api/supabase/test" 
-                            target="_blank"
-                            className="text-blue-400 hover:text-blue-300 ml-2 underline"
-                          >
-                            Supabase Test
-                          </a>
-                        </li>
-                        <li>Environment variables (.env.local) dosyanızda Supabase anahtarlarının olduğundan emin olun</li>
-                        <li>Sayfa yenilenince NFT'ler kayboluyorsa, Supabase bağlantısı eksiktir</li>
-                      </ul>
-                      <div className="mt-4 p-3 bg-black/30 rounded-lg border border-white/10">
-                        <p className="text-xs text-gray-400 mb-2">Gerekli environment variables:</p>
-                        <code className="text-xs text-green-300 block">
-                          NEXT_PUBLIC_SUPABASE_URL={process.env.NEXT_PUBLIC_SUPABASE_URL}<br/>
-                          NEXT_PUBLIC_SUPABASE_ANON_KEY={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}
-                        </code>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
           <Card className="gradient-card border-white/10">
             <CardContent className="p-12 text-center">
               <div className="w-20 h-20 mx-auto mb-6 bg-purple-500/20 rounded-full flex items-center justify-center">
@@ -413,7 +374,6 @@ export default function MyCollectionsPage() {
               </Button>
             </CardContent>
           </Card>
-          </div>
         ) : (
           <div className="space-y-8">
             {/* Created Agents Section */}
