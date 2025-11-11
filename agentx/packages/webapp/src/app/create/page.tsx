@@ -17,7 +17,9 @@ import { Footer } from "@/components/Footer";
 import { CreateWizard } from "@/components/CreateWizard";
 
 export default function CreatePage() {
-  const [useWizard, setUseWizard] = useState(true); // Toggle between wizard and classic
+  // TODO: Wizard Mode - Disabled for now, can be re-enabled later
+  // const [useWizard, setUseWizard] = useState(true); // Toggle between wizard and classic
+  const [useWizard, setUseWizard] = useState(false); // Wizard mode disabled - set to true to re-enable
   const [image, setImage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [name, setName] = useState("");
@@ -1166,7 +1168,8 @@ export default function CreatePage() {
             Mint your intelligent NFT agent on Polygon Network and join the future of AI-powered digital assets.
           </p>
           
-          {/* Mode Toggle */}
+          {/* Mode Toggle - Wizard Mode Disabled */}
+          {/* TODO: Uncomment to re-enable wizard mode toggle
           <div className="flex items-center justify-center gap-2 p-1 bg-white/5 rounded-lg w-fit mx-auto border border-white/10">
             <Button
               variant={useWizard ? "default" : "ghost"}
@@ -1187,16 +1190,20 @@ export default function CreatePage() {
               Classic Mode
             </Button>
           </div>
+          */}
         </div>
 
-        {/* Wizard Mode */}
+        {/* Wizard Mode - Disabled */}
+        {/* TODO: Uncomment to re-enable wizard mode
         {useWizard ? (
           <CreateWizard 
             onComplete={handleWizardComplete}
             isCreating={isCreating || isCreateLoading || isMintLoading || isApproveLoading || isListLoading}
           />
         ) : (
-          // Classic Mode
+        */}
+        {/* Classic Mode - Always shown when wizard is disabled */}
+        {!useWizard ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Creation Form */}
           <div className="space-y-8">
@@ -1605,7 +1612,8 @@ export default function CreatePage() {
             </Card>
           </div>
         </div>
-        )}
+        ) : null}
+        {/* TODO: Uncomment closing bracket when re-enabling wizard mode: )} */}
       </div>
       </div>
       <Footer />
