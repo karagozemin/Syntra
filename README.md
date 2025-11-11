@@ -52,6 +52,8 @@ This is a comprehensive decentralized marketplace specifically designed for AI-p
 
 ## 🏗️ **Technical Architecture**
 
+> 📖 **For comprehensive architecture documentation, see [ARCHITECTURE.md](./ARCHITECTURE.md)**
+
 ### ⛓️ **Blockchain Layer (Polygon)**
 - **INFT Contract** - ERC-721 based intelligent NFTs with enhanced metadata
 - **Marketplace Contract** - Decentralized trading platform with automated royalties
