@@ -1,6 +1,10 @@
-# 🤖 Syntra - AI-Powered NFT Marketplace
-
-> **A decentralized marketplace for AI-powered Intelligent NFTs, built on Polygon Amoy Testnet**
+<div align="center">
+  <img src="agentx/packages/webapp/public/logo.png" alt="Syntra Logo" width="300" />
+  
+  # 🤖 Syntra - AI-Powered NFT Marketplace
+  
+  > **A decentralized marketplace for AI-powered Intelligent NFTs, built on Polygon Amoy Testnet**
+</div>
 
 ## 🎯 **What is this project?**
 
