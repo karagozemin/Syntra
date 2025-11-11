@@ -3,7 +3,7 @@ export const CHAIN_ID = 80002; // Polygon Amoy Testnet
 export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/';
 export const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://amoy.polygonscan.com';
 export const FAUCET_URL = 'https://faucet.polygon.technology/';
-export const TOKEN_SYMBOL = 'MATIC';
+export const TOKEN_SYMBOL = 'POL';
 export const NETWORK_NAME = 'Polygon Amoy Testnet';
 
 // Contract Addresses (will be populated after deployment)

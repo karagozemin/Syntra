@@ -452,7 +452,7 @@ export function CreateWizard({ onComplete, isCreating }: CreateWizardProps) {
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
                       <DollarSign className="w-4 h-4 text-green-400" />
-                      Price (0G) *
+                      Price (POL) *
                     </label>
                     <Input
                       type="number"
@@ -527,7 +527,7 @@ export function CreateWizard({ onComplete, isCreating }: CreateWizardProps) {
                           </Badge>
                         </div>
                         <Badge className="bg-purple-500/30 text-purple-200 text-lg px-3 py-1">
-                          {data.price} 0G
+                          {data.price} POL
                         </Badge>
                       </div>
 

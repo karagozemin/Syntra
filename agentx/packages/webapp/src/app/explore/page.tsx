@@ -270,7 +270,7 @@ export default function ExplorePage() {
             <h1 className="text-4xl font-bold text-gradient">Explore AI INFTs</h1>
           </div>
           <p className="text-xl text-gray-300">
-            Discover and interact with Intelligent NFTs on the 0G Network
+            Discover and interact with Intelligent NFTs on Polygon Network
           </p>
         </div>
 
@@ -286,14 +286,14 @@ export default function ExplorePage() {
           <Card className="gradient-card border-white/10">
             <CardContent className="p-4 text-center">
               <TrendingUp className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{stats.totalVolume.toFixed(1)} 0G</p>
+              <p className="text-2xl font-bold text-white">{stats.totalVolume.toFixed(1)} POL</p>
               <p className="text-gray-400 text-sm">Total Volume</p>
             </CardContent>
           </Card>
           <Card className="gradient-card border-white/10">
             <CardContent className="p-4 text-center">
               <Activity className="w-6 h-6 text-green-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{stats.avgPrice.toFixed(3)} 0G</p>
+              <p className="text-2xl font-bold text-white">{stats.avgPrice.toFixed(3)} POL</p>
               <p className="text-gray-400 text-sm">Floor Price</p>
             </CardContent>
           </Card>
@@ -403,7 +403,7 @@ export default function ExplorePage() {
 
                 {/* Price Range */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Price Range (0G)</label>
+                  <label className="text-sm font-medium text-gray-300">Price Range (POL)</label>
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <Input
@@ -434,7 +434,7 @@ export default function ExplorePage() {
                       className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/10"
                       onClick={() => setPriceRange([0, 0.05])}
                     >
-                      Under 0.05 0G
+                      Under 0.05 POL
                     </Button>
                     <Button
                       variant="ghost"

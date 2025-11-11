@@ -102,7 +102,7 @@ export function AgentComparison({ agents, onClose }: AgentComparisonProps) {
                       {agents.map((agent) => (
                         <td key={agent.id} className="p-4 text-center">
                           <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50">
-                            {agent.priceEth} 0G
+                            {agent.priceEth} POL
                           </Badge>
                         </td>
                       ))}

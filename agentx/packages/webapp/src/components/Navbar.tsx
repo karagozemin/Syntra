@@ -91,7 +91,7 @@ export function Navbar() {
           <div className="relative">
             <Image 
               src="/logo.png" 
-              alt="0Gents Logo" 
+              alt="Syntra Logo" 
               width={180} 
               height={72}
               className="h-14 w-auto group-hover:opacity-80 transition-opacity"
@@ -186,7 +186,7 @@ export function Navbar() {
                                   <Badge variant="secondary" className="text-xs bg-purple-500/20 text-purple-300">
                                     {agent.category}
                                   </Badge>
-                                  <span className="text-xs text-gray-400">{agent.priceEth} 0G</span>
+                                  <span className="text-xs text-gray-400">{agent.priceEth} POL</span>
                                 </div>
                               </div>
                             </div>

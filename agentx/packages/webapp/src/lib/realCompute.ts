@@ -204,7 +204,7 @@ export async function callRealCompute(request: ComputeRequest): Promise<ComputeR
       computeTime,
       nodeId: `mock-node-${Math.random().toString(36).substring(7)}`,
       provider: 'Mock AI Provider',
-      cost: '0.00 MATIC'
+      cost: '0.00 POL'
     };
     
   } catch (error) {

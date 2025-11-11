@@ -16,10 +16,10 @@ export async function POST(request: NextRequest) {
     
     console.log(`🔍 Checking ownership: Token ${tokenId} for user ${userAddress}`);
     
-    // Connect to 0G Network
-    const OG_RPC_URL = process.env.NEXT_PUBLIC_0G_RPC_URL || 'https://evmrpc-testnet.0g.ai';
+    // Connect to Polygon Network
+    const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/';
     const publicClient = createPublicClient({
-      transport: http(OG_RPC_URL),
+      transport: http(RPC_URL),
     });
     
     try {

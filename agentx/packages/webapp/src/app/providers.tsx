@@ -12,7 +12,7 @@ const polygonRpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://rpc-amoy.polyg
 const polygonAmoy = defineChain({
   id: 80002,
   name: "Polygon Amoy Testnet",
-  nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+  nativeCurrency: { name: "POL", symbol: "POL", decimals: 18 },
   rpcUrls: {
     default: { http: [polygonRpcUrl] },
     public: { http: ["https://rpc-amoy.polygon.technology/"] },

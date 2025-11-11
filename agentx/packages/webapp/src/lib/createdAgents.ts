@@ -1,5 +1,5 @@
 // Created Agents Storage - Local storage for demo purposes
-// In production, this would be fetched from 0G Storage or indexed from blockchain events
+// In production, this would be fetched from IPFS Storage or indexed from blockchain events
 
 import type { AgentItem } from './mock';
 

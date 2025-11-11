@@ -26,13 +26,13 @@ export function MintINFT() {
     {
       id: 'metadata',
       title: 'Preparing Your Asset',
-      description: 'Creating metadata and uploading to 0G Storage',
+      description: 'Creating metadata and uploading to IPFS',
       status: 'pending' as const
     },
     {
       id: 'blockchain',
       title: 'Blockchain Verification',
-      description: 'Confirming transaction on 0G Network',
+      description: 'Confirming transaction on Polygon Network',
       status: 'pending' as const
     },
     {
@@ -79,19 +79,19 @@ export function MintINFT() {
       // 1. Create sample agent metadata
       const metadata: AgentMetadata = {
         name: `AI Agent #${Date.now()}`,
-        description: "A powerful AI agent created on 0G Network",
+        description: "A powerful AI agent created on Polygon Network",
         category: "utility",
         creator: address,
         price: "0.01",
         capabilities: ["chat", "analysis", "automation"],
-        skills: ["0g-integration", "smart-contracts"],
+        skills: ["polygon-integration", "smart-contracts"],
         created: new Date().toISOString(),
         updated: new Date().toISOString()
       };
 
-      console.log("🔥 Step 1: Uploading metadata to 0G Storage...");
+      console.log("🔥 Step 1: Uploading metadata to IPFS...");
       
-      // 2. Upload to 0G Storage
+      // 2. Upload to IPFS
       const storageResult = await uploadAgentMetadata(metadata);
       
       if (!storageResult.success) {
@@ -105,7 +105,7 @@ export function MintINFT() {
       updateModalProgress('blockchain', 'in_progress');
 
       // 3. Mint INFT with storage URI
-      console.log("🔗 Step 3: Minting INFT on 0G Chain...");
+      console.log("🔗 Step 3: Minting INFT on Polygon...");
       updateModalProgress('blockchain', 'completed');
       updateModalProgress('mint', 'in_progress');
       
@@ -114,7 +114,7 @@ export function MintINFT() {
         abi: INFT_ABI,
         functionName: "mint",
         args: [storageResult.uri!],
-        value: parseEther("0.005"), // 0.005 0G creation fee
+        value: parseEther("0.005"), // 0.005 POL creation fee
       });
 
       setTxHash(hash);
@@ -175,7 +175,7 @@ export function MintINFT() {
       
       <div className="space-y-4 p-6 border rounded-lg gradient-card">
         <h3 className="text-lg font-semibold text-gradient">🎯 Mint INFT</h3>
-        <p className="text-sm text-gray-400">Create a new AI Agent NFT with 0G Storage metadata</p>
+        <p className="text-sm text-gray-400">Create a new AI Agent NFT with IPFS metadata</p>
       
       <button
         onClick={handleMint}
@@ -260,7 +260,7 @@ export function ListNFT() {
   return (
     <div className="space-y-4 p-6 border rounded-lg gradient-card">
       <h3 className="text-lg font-semibold text-gradient">🏪 List NFT</h3>
-      <p className="text-sm text-gray-400">List your INFT on the 0G marketplace</p>
+      <p className="text-sm text-gray-400">List your INFT on the Syntra marketplace</p>
       
       <div className="space-y-3">
         <div>
@@ -275,7 +275,7 @@ export function ListNFT() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Price (0G)</label>
+          <label className="block text-sm font-medium mb-1">Price (POL)</label>
           <input
             type="number"
             step="0.001"
@@ -370,7 +370,7 @@ export function BuyNFT() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Price (0G)</label>
+          <label className="block text-sm font-medium mb-1">Price (POL)</label>
           <input
             type="number"
             step="0.001"
@@ -441,7 +441,7 @@ export function WalletStatus() {
         
         <div className="flex justify-between">
           <span className="text-gray-400">Network:</span>
-          <span className="text-green-400">0G Galileo Testnet</span>
+          <span className="text-green-400">Polygon Amoy Testnet</span>
         </div>
         
         <div className="flex justify-between">

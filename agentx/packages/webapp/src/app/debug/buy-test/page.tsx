@@ -121,9 +121,9 @@ export default function BuyTestPage() {
               </div>
 
               <div>
-                <label className="text-white text-sm block mb-2">Price (0G)</label>
+                <label className="text-white text-sm block mb-2">Price (POL)</label>
                 <Input
-                  placeholder="Enter price in 0G"
+                  placeholder="Enter price in POL"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   className="bg-gray-700 border-gray-600 text-white"
@@ -143,7 +143,7 @@ export default function BuyTestPage() {
                     Active: {validationResult.active ? '✅ Yes' : '❌ No'}
                   </p>
                   {validationResult.price && (
-                    <p className="text-white">Price: {validationResult.price} 0G</p>
+                    <p className="text-white">Price: {validationResult.price} POL</p>
                   )}
                   {validationResult.seller && (
                     <p className="text-white">Seller: {validationResult.seller}</p>
@@ -196,7 +196,7 @@ export default function BuyTestPage() {
             <div className="text-gray-300 space-y-2 text-sm">
               <p>1. Enter a listing ID and validate it first</p>
               <p>2. If validation shows exists=true and active=true, you can test the buy</p>
-              <p>3. Make sure you have enough 0G tokens in your wallet</p>
+              <p>3. Make sure you have enough POL tokens in your wallet</p>
               <p>4. Use the quick test buttons to test common listing IDs</p>
               <p>5. Check console for detailed error messages</p>
             </div>

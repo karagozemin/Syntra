@@ -1,10 +1,12 @@
-# AgentX Webapp (Wave 1)
+# Syntra Webapp
 
 ## Setup
 
 1. Create `.env.local` and set the following:
    - `NEXT_PUBLIC_WC_PROJECT_ID=...` (WalletConnect project id)
-   - `NEXT_PUBLIC_0G_RPC_URL=...` (optional; e.g. QuickNode/Thirdweb/Ankr RPC for 0G Galileo)
+   - `NEXT_PUBLIC_RPC_URL=...` (Polygon Amoy RPC URL, e.g. `https://rpc-amoy.polygon.technology/`)
+   - `NEXT_PUBLIC_SUPABASE_URL=...` (Supabase project URL)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY=...` (Supabase anon key)
 2. Install deps and run:
 
 ```bash
@@ -12,22 +14,30 @@ npm install
 npm run dev
 ```
 
-## Features (Wave 1)
+## Features
 
 - Wallet connect via RainbowKit/Wagmi
-- Minimal chat UI (`/`)
-- API route placeholder (`/api/chat`)
-- Onchain action: Register agent on 0G via `AgentRegistry` (set `NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS`)
+- Create and mint AI Agent NFTs (INFTs)
+- Marketplace for buying/selling INFTs
+- IPFS storage for metadata
+- Polygon Amoy Testnet integration
 
-## 0G Galileo Testnet
+## Polygon Amoy Testnet
 
-- Network Name: `0G-Galileo-Testnet`
-- Chain ID: `16602`
-- Symbol: `OG`
-- Block Explorer: `https://chainscan-galileo.0g.ai`
-- Faucet: `https://faucet.0g.ai`
+- Network Name: `Polygon Amoy Testnet`
+- Chain ID: `80002`
+- Symbol: `POL`
+- Block Explorer: `https://amoy.polygonscan.com`
+- Faucet: `https://faucet.polygon.technology/`
 
-To use 0G in the dapp, set `NEXT_PUBLIC_0G_RPC_URL` to a 3rd party endpoint (QuickNode/ThirdWeb/Ankr). If not set, app defaults to Sepolia/Mainnet for development.
+## Tech Stack
+
+- Next.js 14+ (App Router)
+- TypeScript
+- Wagmi + RainbowKit (Wallet connection)
+- Viem (Blockchain interactions)
+- IPFS (Metadata storage)
+- Supabase (Database)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

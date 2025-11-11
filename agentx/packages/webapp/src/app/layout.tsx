@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "0Gents Marketplace",
-  description: "0Gents – Onchain AI Agent INFT Marketplace",
+  title: "Syntra Marketplace",
+  description: "Syntra – Onchain AI Agent INFT Marketplace on Polygon",
 };
 
 export default function RootLayout({

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Upload, Zap, Eye, Info, Wallet, Share2, ShoppingCart, LayoutGrid } from "lucide-react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { FACTORY_ADDRESS, FACTORY_ABI, AGENT_NFT_ABI, INFT_ABI, MARKETPLACE_ADDRESS, MARKETPLACE_ABI, CHAIN_ID } from "@/lib/contracts";
+import { FACTORY_ADDRESS, FACTORY_ABI, AGENT_NFT_ABI, INFT_ABI, MARKETPLACE_ADDRESS, MARKETPLACE_ABI, CHAIN_ID, RPC_URL, EXPLORER_URL } from "@/lib/contracts";
 import { uploadAgentMetadata, type AgentMetadata } from "@/lib/storage";
 import { parseEther, formatEther } from "viem";
 import { saveUnifiedAgent } from "@/lib/unifiedAgents";
@@ -176,7 +176,7 @@ export default function CreatePage() {
     setProgressSteps([]);
     
     try {
-      // Step 1: Create metadata object for 0G Storage
+      // Step 1: Create metadata object for IPFS Storage
       updateProgress("🎯 Step 1: Preparing agent metadata...");
       const metadata: AgentMetadata = {
         name: wizardData.name,
@@ -307,7 +307,7 @@ export default function CreatePage() {
       console.log("    - Capabilities:", finalArgs[5]);
       console.log("    - Price (wei):", finalArgs[6].toString());
       console.log("    - Price (ETH):", formatEther(finalArgs[6]));
-      console.log("  💰 Value:", formatEther(parseEther("0.0001")), "MATIC");
+      console.log("  💰 Value:", formatEther(parseEther("0.0001")), "POL");
       
       console.log("🔍 Wallet connection status:", {
         isConnected,
@@ -324,7 +324,7 @@ export default function CreatePage() {
           abi: FACTORY_ABI,
           functionName: "createAgent",
           args: finalArgs,
-          value: parseEther("0.0001"), // Factory creation fee (0.0001 MATIC)
+          value: parseEther("0.0001"), // Factory creation fee (0.0001 POL)
           gas: BigInt(3000000), // 3M gas for contract creation
           maxFeePerGas: BigInt(100000000000), // 100 gwei
           maxPriorityFeePerGas: BigInt(40000000000), // 40 gwei
@@ -367,7 +367,7 @@ export default function CreatePage() {
           errorMessage = "❌ Transaction rejected by user";
           updateProgress("❌ User cancelled transaction");
         } else if (error.message.includes('insufficient funds')) {
-          errorMessage = "💰 Insufficient balance (need ~0.02 MATIC)";
+          errorMessage = "💰 Insufficient balance (need ~0.02 POL)";
           updateProgress("❌ Insufficient balance for transaction");
         } else {
           errorMessage = error.message;
@@ -380,8 +380,8 @@ export default function CreatePage() {
       updateProgress("❌ Creation process failed - please try again");
       
       // Show user-friendly error
-      alert(`Failed to create agent: ${errorMessage}`);
-      setIsCreating(false);
+        alert(`Failed to create agent: ${errorMessage}`);
+        setIsCreating(false);
     }
   };
 
@@ -633,7 +633,7 @@ export default function CreatePage() {
               await new Promise(resolve => setTimeout(resolve, 3000));
               
               // Try factory again
-              const retryResponse = await fetch(`https://evmrpc-testnet.0g.ai/`, {
+              const retryResponse = await fetch(RPC_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -653,7 +653,7 @@ export default function CreatePage() {
               
               if (retryTotal > 0) {
                 // Now get the first agent (index 0)
-                const firstAgentResponse = await fetch(`https://evmrpc-testnet.0g.ai/`, {
+                const firstAgentResponse = await fetch(RPC_URL, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -1041,7 +1041,7 @@ export default function CreatePage() {
           console.log("📊 Save result:", saveResult);
           
           if (saveResult.success) {
-            console.log("✅ Agent saved to unified system and Supabase");
+          console.log("✅ Agent saved to unified system and Supabase");
             updateProgress("✅ Agent saved successfully to database!");
           } else {
             console.error("❌ Failed to save agent:", saveResult.error);
@@ -1098,7 +1098,7 @@ export default function CreatePage() {
             </h1>
             
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Your INFT has been successfully created on the 0G Network. 
+              Your INFT has been successfully created on Polygon Network. 
               It's now live and available on the marketplace!
             </p>
             
@@ -1163,7 +1163,7 @@ export default function CreatePage() {
             <h1 className="text-4xl font-bold text-gradient">Create INFT</h1>
           </div>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-6">
-            Mint your intelligent NFT agent on the 0G Network and join the future of AI-powered digital assets.
+            Mint your intelligent NFT agent on Polygon Network and join the future of AI-powered digital assets.
           </p>
           
           {/* Mode Toggle */}
@@ -1256,7 +1256,7 @@ export default function CreatePage() {
 
                 {/* Price */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Price (0G) *</label>
+                  <label className="text-sm font-medium text-gray-300">Price (POL) *</label>
                   <Input
                     type="number" 
                     step="0.001"
@@ -1418,18 +1418,18 @@ export default function CreatePage() {
               </Card>
             )}
 
-            {/* 0G Storage Integration Info */}
+            {/* IPFS Storage Integration Info */}
             <Card className="gradient-card border-white/10">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Info className="w-5 h-5 text-blue-400" />
-                  <h3 className="font-semibold text-white">0G Integration</h3>
+                  <h3 className="font-semibold text-white">IPFS Integration</h3>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Storage Network</span>
                     <Badge variant="outline" className="border-blue-400/50 text-blue-300">
-                      0G Galileo
+                      Polygon Amoy
                       </Badge>
                     </div>
                   <div className="flex justify-between items-center">
@@ -1446,9 +1446,9 @@ export default function CreatePage() {
                   </div>
                   <div className="border-t border-white/10 pt-3">
                     <div className="text-xs text-gray-400">
-                      • Metadata stored on 0G Storage
+                      • Metadata stored on IPFS
                       <br />
-                      • INFT minted on 0G Chain
+                      • INFT minted on Polygon
                       <br />
                       • Verifiable & decentralized
                     </div>
@@ -1466,7 +1466,7 @@ export default function CreatePage() {
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-300">0G Storage Fee</span>
+                    <span className="text-gray-300">IPFS Storage Fee</span>
                     <Badge variant="outline" className="border-blue-400/50 text-blue-300">
                       Free (Testnet)
                     </Badge>
@@ -1474,20 +1474,20 @@ export default function CreatePage() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Creation Fee</span>
                     <Badge variant="outline" className="border-purple-400/50 text-purple-300">
-                      0.0001 MATIC
+                      0.0001 POL
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Network Fee (Gas)</span>
                     <Badge variant="outline" className="border-green-400/50 text-green-300">
-                      ~0.002 MATIC
+                      ~0.002 POL
                     </Badge>
                   </div>
                   <div className="border-t border-white/10 pt-3">
                     <div className="flex justify-between items-center font-semibold">
                       <span className="text-white">Total Estimated</span>
                       <Badge variant="outline" className="border-yellow-400/50 text-yellow-300">
-                        ~0.003 MATIC
+                        ~0.003 POL
                       </Badge>
                   </div>
                   </div>
@@ -1570,7 +1570,7 @@ export default function CreatePage() {
                           {name || "Agent Name"}
                         </h3>
                         <Badge variant="outline" className="border-purple-400/50 text-purple-300 bg-purple-500/10">
-                          {price ? `${price} 0G` : "0.00 0G"}
+                          {price ? `${price} POL` : "0.00 POL"}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-400">

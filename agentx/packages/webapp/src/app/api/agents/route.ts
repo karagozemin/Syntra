@@ -15,7 +15,7 @@ export interface UnifiedAgent {
   creator: string;              // Original creator address (owner)
   currentOwner: string;         // Current NFT owner (creator initially, buyer after purchase)
   txHash: string;               // Creation transaction hash
-  storageUri: string;           // 0G Storage URI
+  storageUri: string;           // IPFS Storage URI
   listingId: number;           // Real marketplace listing ID
   active: boolean;             // Available for purchase
   createdAt: string;           // ISO timestamp

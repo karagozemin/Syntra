@@ -56,7 +56,7 @@ export async function POST() {
         creator: '0x0000000000000000000000000000000000000001',
         current_owner: '0x0000000000000000000000000000000000000001',
         tx_hash: `keep-alive-tx-${timestamp}`,
-        storage_uri: `0g://storage/keep-alive-${timestamp}`,
+        storage_uri: `ipfs://storage/keep-alive-${timestamp}`,
         listing_id: 0,
         active: false, // Mark as inactive so they don't appear in real marketplace
         capabilities: agent.capabilities,

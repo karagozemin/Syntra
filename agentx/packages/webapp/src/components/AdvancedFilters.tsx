@@ -197,7 +197,7 @@ export function AdvancedFilters({ onFilterChange, totalResults }: AdvancedFilter
                 <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-green-400" />
-                    Price Range (0G)
+                    Price Range (POL)
                   </h3>
                   <div className="flex items-center gap-4">
                     <div className="flex-1">

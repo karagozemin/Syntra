@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { getCreatedAgents, saveCreatedAgent, type CreatedAgent } from "@/lib/createdAgents";
 import { useReadContract } from "wagmi";
-import { INFT_ADDRESS, INFT_ABI } from "@/lib/contracts";
+import { INFT_ADDRESS, INFT_ABI, EXPLORER_URL } from "@/lib/contracts";
 import { getAllUnifiedAgents } from "@/lib/unifiedAgents";
 import { Navbar } from "@/components/Navbar";
 
@@ -301,7 +301,7 @@ export default function MyCollectionsPage() {
           <div>
             <h1 className="text-4xl font-bold text-gradient mb-2">My Collections</h1>
             <p className="text-gray-300">
-              Manage your Intelligent NFTs (INFTs) created on the 0G Network
+              Manage your Intelligent NFTs (INFTs) created on Polygon Network
             </p>
           </div>
           
@@ -347,7 +347,7 @@ export default function MyCollectionsPage() {
               
               <div className="text-right">
                 <p className="text-sm text-gray-400">Network</p>
-                <p className="text-green-400">0G Galileo Testnet</p>
+                <p className="text-green-400">Polygon Amoy Testnet</p>
               </div>
             </div>
           </CardContent>
@@ -394,25 +394,25 @@ export default function MyCollectionsPage() {
               </CardContent>
             </Card>
 
-            <Card className="gradient-card border-white/10">
-              <CardContent className="p-12 text-center">
-                <div className="w-20 h-20 mx-auto mb-6 bg-purple-500/20 rounded-full flex items-center justify-center">
-                  <Plus className="w-10 h-10 text-purple-400" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4">No INFTs Created Yet</h3>
-                <p className="text-gray-300 mb-8 max-w-md mx-auto">
-                  Start building your Intelligent NFT collection on the 0G Network. 
-                  Create your first INFT today!
-                </p>
-                <Button 
-                  className="gradient-0g px-8 py-3 cursor-pointer"
-                  onClick={() => window.location.href = '/create'}
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Create Your First INFT
-                </Button>
-              </CardContent>
-            </Card>
+          <Card className="gradient-card border-white/10">
+            <CardContent className="p-12 text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-purple-500/20 rounded-full flex items-center justify-center">
+                <Plus className="w-10 h-10 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-4">No INFTs Created Yet</h3>
+              <p className="text-gray-300 mb-8 max-w-md mx-auto">
+                  Start building your Intelligent NFT collection on Polygon Network. 
+                Create your first INFT today!
+              </p>
+              <Button 
+                className="gradient-0g px-8 py-3 cursor-pointer"
+                onClick={() => window.location.href = '/create'}
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Create Your First INFT
+              </Button>
+            </CardContent>
+          </Card>
           </div>
         ) : (
           <div className="space-y-8">
@@ -466,7 +466,7 @@ export default function MyCollectionsPage() {
                       
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Price (0G)</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Price (POL)</label>
                           <Input
                             type="number"
                             step="0.001"
@@ -516,7 +516,7 @@ export default function MyCollectionsPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-gray-400">Price</p>
-                          <p className="font-semibold text-purple-300">{agent.price} 0G</p>
+                          <p className="font-semibold text-purple-300">{agent.price} POL</p>
                         </div>
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-300 border-blue-400/30">
                           {agent.category}
@@ -641,7 +641,7 @@ export default function MyCollectionsPage() {
                             size="sm" 
                             variant="outline" 
                             className="border-blue-400/50 text-blue-300 hover:bg-blue-400/10 cursor-pointer"
-                            onClick={() => window.open(`https://chainscan-galileo.0g.ai/token/${INFT_ADDRESS}?a=${agent.tokenId}`, '_blank')}
+                            onClick={() => window.open(`${EXPLORER_URL}/token/${INFT_ADDRESS}?a=${agent.tokenId}`, '_blank')}
                           >
                             <ExternalLink className="w-4 h-4" />
                           </Button>

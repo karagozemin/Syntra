@@ -1,4 +1,4 @@
-// API route for 0G Compute chat requests
+// API route for AI Compute chat requests
 import { NextRequest, NextResponse } from 'next/server';
 import { callRealCompute, type ComputeRequest } from '@/lib/realCompute';
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     
     console.log('📡 API: Received compute request for agent:', computeRequest.agentId);
     
-    // Call real 0G Compute
+    // Call real AI Compute
     const result = await callRealCompute(computeRequest);
     
     return NextResponse.json(result);

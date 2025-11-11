@@ -82,7 +82,7 @@ export function AgentCard({
       
       // ✅ FIX: Marketplace'de listing var mı kontrol et
       try {
-        const listingResponse = await fetch('https://evmrpc-testnet.0g.ai/', {
+        const listingResponse = await fetch(process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -115,7 +115,7 @@ export function AgentCard({
         functionName: "buy",
         args: [BigInt(listingId)],
         value: parseEther(priceEth.toString() || "0"),
-        gas: BigInt(500000), // 0G Network için yeterli gas
+        gas: BigInt(500000), // Polygon Network için yeterli gas
       });
     } catch (error: any) {
       console.error("Buy failed:", error);
@@ -286,7 +286,7 @@ export function AgentCard({
                   {name}
                 </h3>
                 <Badge variant="outline" className="border-purple-400/60 text-purple-300 bg-purple-500/20 font-semibold text-sm px-2.5 py-0.5 whitespace-nowrap">
-                  {priceEth} 0G
+                  {priceEth} POL
                 </Badge>
               </div>
               <div className="flex items-center justify-between">

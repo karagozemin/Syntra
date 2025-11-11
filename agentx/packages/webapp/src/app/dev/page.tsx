@@ -20,7 +20,7 @@ export default function Home() {
   const chainId = useChainId();
   const [mounted, setMounted] = useState(false);
   
-  // 0G Testing states
+  // Testing states
   const [storageTest, setStorageTest] = useState<{ success: boolean; message: string; details?: unknown; uploadTest?: { success: boolean; rootHash?: string } } | null>(null);
   const [computeTest, setComputeTest] = useState<{ success: boolean; message: string; details?: { testDuration?: number } } | null>(null);
   const [storageInfo, setStorageInfo] = useState<{ network: string; status: string; rpcUrl: string; indexerUrl: string; hasPrivateKey: boolean; localUploads?: number; storageUploads?: number; } | null>(null);
@@ -28,7 +28,7 @@ export default function Home() {
   const [testLoading, setTestLoading] = useState(false);
   useEffect(() => {
     setMounted(true);
-    // Load initial 0G status
+    // Load initial status
     loadInitialStatus();
   }, []);
   
@@ -55,12 +55,12 @@ export default function Home() {
       if (result.success) {
         const sampleMetadata = {
           name: "Test Agent",
-          description: "A test agent for 0G Storage integration",
+          description: "A test agent for IPFS Storage integration",
           category: "testing",
-          creator: "0G Developer",
+          creator: "Syntra Developer",
           price: "0",
           capabilities: ["test", "storage"],
-          skills: ["0g-integration"],
+          skills: ["polygon-integration"],
           created: new Date().toISOString(),
           updated: new Date().toISOString()
         };
@@ -124,7 +124,7 @@ export default function Home() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold gradient-0g bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">AgentX Dev Console</h1>
-          <p className="text-xs text-gray-500">0G Network Integration Testing & Development</p>
+          <p className="text-xs text-gray-500">Polygon Network Integration Testing & Development</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs rounded-full border px-2 py-1 text-gray-600">chain: {mounted && chainId ? chainId : "-"}</span>
@@ -134,14 +134,14 @@ export default function Home() {
 
       {wrongNetwork && (
         <div className="rounded-md border border-yellow-400 bg-yellow-50 text-yellow-700 px-3 py-2 text-sm">
-          Please switch to 0G-Galileo-Testnet (chainId 16602) from your wallet.
+          Please switch to Polygon Amoy Testnet (chainId 80002) from your wallet.
         </div>
       )}
       
-      {/* 0G Network Status */}
+      {/* Network Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <section className="border rounded-lg p-4 space-y-3 shadow-sm gradient-card">
-          <h2 className="font-medium text-gradient">🏪 0G Storage Status</h2>
+          <h2 className="font-medium text-gradient">🏪 IPFS Storage Status</h2>
           {storageInfo && (
             <div className="space-y-2 text-xs">
               <div>Network: <span className="font-mono">{storageInfo.network}</span></div>
@@ -173,7 +173,7 @@ export default function Home() {
         </section>
         
         <section className="border rounded-lg p-4 space-y-3 shadow-sm gradient-card">
-          <h2 className="font-medium text-gradient">🧠 0G Compute Status</h2>
+          <h2 className="font-medium text-gradient">🧠 AI Compute Status</h2>
           {computeStatus && (
             <div className="space-y-2 text-xs">
               <div>Network: <span className="font-mono">{computeStatus.network}</span></div>
@@ -217,7 +217,7 @@ export default function Home() {
                 </div>
       
       <section className="border rounded-lg p-4 space-y-3 shadow-sm">
-        <h2 className="font-medium">⛓️ Register Agent (on 0G Chain)</h2>
+        <h2 className="font-medium">⛓️ Register Agent (on Polygon Chain)</h2>
         {AGENT_REGISTRY_ADDRESS && (
           <p className="text-xs text-gray-500 break-all">Registry: {AGENT_REGISTRY_ADDRESS}</p>
         )}

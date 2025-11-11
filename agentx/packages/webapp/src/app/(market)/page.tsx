@@ -4,7 +4,7 @@ import { AgentWideCard } from "@/components/AgentWideCard";
 import { getAllUnifiedAgents } from "@/lib/unifiedAgents";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Star, Zap, Users, Rocket, Shield, Database, Code2, ArrowRight, CheckCircle2 } from "lucide-react";
+import { TrendingUp, Star, Zap, Users, Rocket, Shield, Database, Code2, ArrowRight, CheckCircle2, Eye, ShoppingCart } from "lucide-react";
 import DarkVeil from "@/components/ui/DarkVeil";
 import { useState, useEffect } from "react";
 import { useReadContract } from "wagmi";
@@ -111,7 +111,7 @@ export default function HomePage() {
               views: agent.views || 0,
               history: [
                 {
-                  activity: "Created on 0G Network",
+                  activity: "Created on Polygon",
                   date: agent.createdAt,
                   priceEth: parseFloat(agent.price || "0")
                 }
@@ -192,7 +192,7 @@ export default function HomePage() {
           {/* MAINNET LIVE Badge */}
           <Badge className="mb-6 bg-green-500/20 text-green-300 border-green-400/50 px-6 py-2 text-sm font-semibold animate-pulse">
             <Rocket className="w-4 h-4 mr-2 inline" />
-            💎 LIVE ON 0G MAINNET
+            💎 LIVE ON POLYGON
           </Badge>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-4">
@@ -202,12 +202,12 @@ export default function HomePage() {
           </h1>
           
           <p className="text-lg text-purple-300 mb-4 font-semibold drop-shadow-md">
-            Built on 0G Network • Lightning Fast • Ultra Low Fees
+            Built on Polygon Network • Lightning Fast • Ultra Low Fees
           </p>
           
           <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto drop-shadow-md">
             Create, trade, and own AI-powered Intelligent NFTs (INFTs). 
-            Powered by 0G's revolutionary decentralized infrastructure.
+            Powered by Polygon's revolutionary decentralized infrastructure.
           </p>
           
           <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -238,9 +238,9 @@ export default function HomePage() {
       <section className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {[
           { label: "INFTs Created", value: totalAgents ? totalAgents.toString() : "...", icon: Users, color: "text-purple-400" },
-          { label: "Network", value: "0G Mainnet", icon: Rocket, color: "text-green-400" },
+          { label: "Network", value: "Polygon Amoy", icon: Rocket, color: "text-green-400" },
           { label: "Active Listings", value: allAgents.length.toString(), icon: TrendingUp, color: "text-blue-400" },
-          { label: "Creation Fee", value: "0.01 0G", icon: Zap, color: "text-yellow-400" }
+          { label: "Creation Fee", value: "0.01 POL", icon: Zap, color: "text-yellow-400" }
         ].map((stat, index) => (
           <div key={index} className="gradient-card rounded-2xl p-6 text-center group hover:glow-purple transition-all duration-300">
             <stat.icon className={`w-8 h-8 mx-auto mb-3 ${stat.color}`} />
@@ -250,12 +250,12 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* Why 0Gents Section */}
+      {/* Why Syntra Section */}
       <section className="gradient-card rounded-3xl p-12 border border-purple-500/20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">Why Choose 0Gents?</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Why Choose Syntra?</h2>
           <p className="text-gray-300 max-w-2xl mx-auto">
-            The first and only Intelligent NFT marketplace leveraging 0G Network's revolutionary technology
+            The first and only Intelligent NFT marketplace on Polygon Network
           </p>
         </div>
         
@@ -263,14 +263,14 @@ export default function HomePage() {
           {[
             {
               icon: Rocket,
-              title: "0G Network Powered",
-              description: "Lightning-fast transactions with minimal fees on 0G Mainnet",
+              title: "Polygon Powered",
+              description: "Lightning-fast transactions with minimal fees on Polygon Network",
               color: "text-green-400"
             },
             {
               icon: Database,
               title: "Decentralized Storage",
-              description: "INFT data stored permanently on 0G Storage network",
+              description: "INFT metadata stored permanently on IPFS network",
               color: "text-blue-400"
             },
             {
@@ -307,8 +307,8 @@ export default function HomePage() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Show latest 3 real NFTs */}
           {allAgents.length > 0 ? (
-            // Show first 3 INFTs (most recently created - already sorted newest first)
             allAgents.slice(0, 3).map((agent) => {
               console.log('🔍 Featured agent:', { id: agent.id, name: agent.name });
               return (
@@ -316,14 +316,18 @@ export default function HomePage() {
               );
             })
           ) : (
-            <div className="col-span-full text-center py-8">
-              <p className="text-gray-400">No featured INFTs yet</p>
+            <div className="col-span-full text-center py-12">
+              <div className="text-gray-400">
+                <Star className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">No featured INFTs yet</p>
+                <p className="text-sm">Create your first INFT to see it featured here!</p>
+              </div>
             </div>
           )}
         </div>
       </section>
 
-      {/* Trending Section - Show all INFTs (including featured ones) */}
+      {/* Trending Section - Show all INFTs + Mock SOLD OUT NFTs */}
       <section id="trending-section" className="space-y-6 scroll-mt-24">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -343,17 +347,93 @@ export default function HomePage() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {/* ✅ Show ALL INFTs (already sorted newest first) */}
-          {allAgents.length > 0 ? (
+          {/* Mock Cyberpunk NFTs - SOLD OUT */}
+          {[
+            {
+              name: "Cyber Sentinel",
+              image: "https://dl2.myminifactory.com/object-assets/666ff451f3d4b7.42447182/images/720X720-adacolored.jpg",
+              price: "2.5"
+            },
+            {
+              name: "Math in Mind",
+              image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=400&fit=crop",
+              price: "3.8"
+            },
+            {
+              name: "Digital Ghost",
+              image: "https://www.shutterstock.com/image-photo/ghost-600nw-2458935755.jpg",
+              price: "1.9"
+            },
+            {
+              name: "Neural Nexus",
+              image: "https://source.boomplaymusic.com/group10/M00/09/04/67e682456a304aef9eff33d4379b00ebH3000W3000_320_320.jpg",
+              price: "5.5"
+            },
+            {
+              name: "Void Walker",
+              image: "https://static0.dualshockersimages.com/wordpress/wp-content/uploads/2023/03/2022_twq_void_subclass_large10.jpg?q=50&fit=crop&w=825&dpr=1.5",
+              price: "3.2"
+            },
+            {
+              name: "Blockchain",
+              image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=400&fit=crop",
+              price: "4.8"
+            },
+            {
+              name: "Digital Samurai",
+              image: "https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/9-samurai-danilov-ilya.jpg",
+              price: "6.1"
+            },
+            {
+              name: "Neon Ninja",
+              image: "https://img.freepik.com/premium-psd/pulsating-strobe-lights-stealthy-ninja-holding-shurik-png-creative-neon-line-art-designs_1020495-722159.jpg?semt=ais_hybrid&w=740&q=80",
+              price: "3.5"
+            }
+          ].map((mockNft, i) => (
+            <div key={`mock-${i}`} className="gradient-card rounded-2xl overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all group opacity-80">
+              <div className="relative aspect-square overflow-hidden">
+                <img 
+                  src={mockNft.image} 
+                  alt={mockNft.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 grayscale-[30%]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                <div className="absolute top-4 right-4">
+                  <Badge className="bg-red-500 text-white border-0 font-bold shadow-lg">
+                    SOLD OUT
+                  </Badge>
+                </div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h3 className="text-xl font-bold text-white mb-2">{mockNft.name}</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-purple-300 font-semibold">{mockNft.price} POL</span>
+                    <Button 
+                      size="sm" 
+                      disabled
+                      className="bg-gray-700 text-gray-500 cursor-not-allowed hover:bg-gray-700"
+                    >
+                      Sold Out
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {/* ✅ Show ALL real INFTs (already sorted newest first) */}
+          {allAgents.length > 0 && (
             allAgents.map((agent) => (
               <AgentCard key={agent.id} {...agent} />
             ))
-          ) : (
+          )}
+          
+          {/* Empty state - only show if no real NFTs */}
+          {allAgents.length === 0 && (
             <div className="col-span-full text-center py-16">
               <div className="text-gray-400 mb-4">
                 <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
                 <p className="text-xl mb-2">No INFTs listed yet</p>
-                <p className="text-sm">Be the first to create an Intelligent NFT on 0G Mainnet!</p>
+                <p className="text-sm">Be the first to create an Intelligent NFT on Syntra!</p>
               </div>
               <Button className="mt-6 gradient-0g" asChild>
                 <a href="/create">

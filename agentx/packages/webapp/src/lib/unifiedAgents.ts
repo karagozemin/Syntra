@@ -74,7 +74,7 @@ export async function saveUnifiedAgent(agentData: Partial<UnifiedAgent>): Promis
     });
 
     console.log('📡 API Response status:', response.status, response.statusText);
-    
+
     const result = await response.json();
     console.log('📊 API Response data:', result);
     

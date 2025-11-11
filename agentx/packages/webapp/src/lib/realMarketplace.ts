@@ -61,9 +61,9 @@ export async function validateListingExists(listingId: number): Promise<{
   try {
     console.log(`🔍 Validating listing ${listingId} on blockchain...`);
     
-    const OG_RPC_URL = process.env.NEXT_PUBLIC_0G_RPC_URL || 'https://evmrpc-testnet.0g.ai';
+    const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/';
     
-    const response = await fetch(OG_RPC_URL, {
+    const response = await fetch(RPC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -123,9 +123,9 @@ export async function validateListingExists(listingId: number): Promise<{
  */
 export async function getNextListingId(): Promise<number> {
   try {
-    const OG_RPC_URL = process.env.NEXT_PUBLIC_0G_RPC_URL || 'https://evmrpc-testnet.0g.ai';
+    const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/';
     
-    const response = await fetch(OG_RPC_URL, {
+    const response = await fetch(RPC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

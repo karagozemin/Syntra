@@ -66,7 +66,7 @@ export function AgentWideCard({ id, name, owner, image, priceEth, tag }: {
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold text-white truncate group-hover:text-gradient transition-all duration-300">{name}</h3>
             <Badge variant="outline" className="border-purple-400/50 text-purple-300 bg-purple-500/10 font-semibold">
-              {priceEth} 0G
+              {priceEth} POL
             </Badge>
           </div>
           <p className="text-sm text-gray-400 truncate">by {owner}</p>

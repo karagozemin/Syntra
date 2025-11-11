@@ -271,7 +271,7 @@ export function ProgressModal({
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xs text-gray-400">Transaction:</span>
                             <a
-                              href={step.explorerLink || `https://chainscan-newton.0g.ai/tx/${step.txHash}`}
+                              href={step.explorerLink || `${process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://amoy.polygonscan.com'}/tx/${step.txHash}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 font-mono bg-gray-800/50 px-2 py-1 rounded-md hover:bg-gray-700/50"

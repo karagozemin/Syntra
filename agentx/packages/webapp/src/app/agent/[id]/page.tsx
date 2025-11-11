@@ -86,9 +86,9 @@ export default function AgentDetail() {
       console.log(`🔍 Validating listing ${agent.listingId} on blockchain...`);
       
       const isMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === 'true';
-      const OG_RPC_URL = isMainnet ? 'https://evmrpc.0g.ai' : 'https://evmrpc-testnet.0g.ai';
+      const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/';
       
-      const response = await fetch(OG_RPC_URL, {
+      const response = await fetch(RPC_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,7 +132,7 @@ Please refresh the page or create a new agent.`);
       
       console.log(`🛒 Executing REAL purchase transaction...`);
       console.log(`📋 Listing ID: ${agent.listingId}`);
-      console.log(`💰 Price: ${priceValue} 0G (${price.toString()} wei)`);
+      console.log(`💰 Price: ${priceValue} POL (${price.toString()} wei)`);
       
       // ✅ EXECUTE REAL BLOCKCHAIN TRANSACTION
       await writeContract({
@@ -275,7 +275,7 @@ Please refresh the page or create a new agent.`);
                   <p className="text-lg text-gray-400">
                     CA:{" "}
                     <button
-                      onClick={() => window.open(`https://chainscan-galileo.0g.ai/address/${agent.agentContractAddress || agent.creator}`, '_blank')}
+                      onClick={() => window.open(`${process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://amoy.polygonscan.com'}/address/${agent.agentContractAddress || agent.creator}`, '_blank')}
                       className="text-blue-400 hover:text-blue-300 underline transition-colors cursor-pointer inline-flex items-center gap-1"
                     >
                       {(agent.agentContractAddress || agent.creator)?.slice(0, 6)}...{(agent.agentContractAddress || agent.creator)?.slice(-4)}
@@ -284,7 +284,7 @@ Please refresh the page or create a new agent.`);
                   </p>
                   </div>
                 <Badge variant="outline" className="border-blue-400/50 text-blue-300 bg-blue-500/10 text-lg px-4 py-2">
-                        {agent.priceEth} 0G
+                        {agent.priceEth} POL
                       </Badge>
                     </div>
 
@@ -374,7 +374,7 @@ Please refresh the page or create a new agent.`);
                   ) : (
                     <>
                       <ShoppingCart className="w-5 h-5 mr-3" />
-                      Buy Now for {agent.priceEth} 0G
+                      Buy Now for {agent.priceEth} POL
                     </>
                   )}
                 </Button>

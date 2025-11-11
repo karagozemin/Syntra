@@ -14,7 +14,7 @@ export function initializeServerErrorHandling() {
   process.on('unhandledRejection', (reason, promise) => {
     const reasonStr = reason instanceof Error ? reason.message : String(reason);
     
-    // Filter out known 0G Storage timeout issues that are handled elsewhere
+    // Filter out known IPFS Storage timeout issues that are handled elsewhere
     if (reasonStr.includes('Upload timeout') || 
         reasonStr.includes('ETIMEDOUT') ||
         reasonStr.includes('read ETIMEDOUT')) {

@@ -13,7 +13,7 @@ export function Footer() {
               <Link href="/" className="flex items-center">
                 <Image 
                   src="/logo.png" 
-                  alt="0Gents Logo" 
+                  alt="Syntra Logo" 
                   width={200} 
                   height={80}
                   className="h-20 w-auto"
@@ -22,7 +22,7 @@ export function Footer() {
               </Link>
             </div>
             <p className="text-sm text-gray-400 max-w-xs">
-              The future of AI-powered digital assets on the 0G Network. Create, trade, and explore intelligent NFT agents.
+              The future of AI-powered digital assets on Polygon Network. Create, trade, and explore intelligent NFT agents.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ export function Footer() {
             <h3 className="font-semibold text-white">Community</h3>
             <div className="flex gap-3">
               <a 
-                href="https://x.com/0Gents" 
+                href="https://x.com/kaptan_web3" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-400/30 transition-all"
@@ -71,7 +71,7 @@ export function Footer() {
                 <Twitter className="w-4 h-4 text-gray-400 hover:text-purple-300" />
               </a>
               <a 
-                href="https://github.com/karagozemin" 
+                href="https://github.com/karagozemin/syntra" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-purple-500/20 hover:border-purple-400/30 transition-all"
@@ -86,7 +86,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <span className="text-sm text-gray-400">
-            © 2025 0Gents. Built on 0G Network.
+            © 2025 Syntra. Built on Polygon Network.
           </span>
           <div className="flex gap-6 text-sm">
             <Link href="/privacy" className="text-gray-400 hover:text-purple-300 transition-colors">

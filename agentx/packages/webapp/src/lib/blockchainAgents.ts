@@ -36,7 +36,7 @@ export interface BlockchainAgent {
 export function saveGlobalAgent(agent: BlockchainAgent): void {
   try {
     // Save to cross-browser localStorage key
-    const stored = localStorage.getItem('0gents_cross_browser_agents');
+    const stored = localStorage.getItem('syntra_cross_browser_agents');
     const existing = stored ? JSON.parse(stored) : [];
     
     // Check if already exists
@@ -50,7 +50,7 @@ export function saveGlobalAgent(agent: BlockchainAgent): void {
       updated = [agent, ...existing];
     }
     
-    localStorage.setItem('0gents_cross_browser_agents', JSON.stringify(updated));
+    localStorage.setItem('syntra_cross_browser_agents', JSON.stringify(updated));
     console.log('🌐 Agent saved to cross-browser storage:', agent.tokenId);
     console.log('📊 Total cross-browser agents:', updated.length);
     
@@ -67,7 +67,7 @@ export function saveGlobalAgent(agent: BlockchainAgent): void {
 export function getGlobalAgents(): BlockchainAgent[] {
   try {
     // Get from global localStorage (this simulates blockchain indexing)
-    const stored = localStorage.getItem('0gents_cross_browser_agents');
+    const stored = localStorage.getItem('syntra_cross_browser_agents');
     const crossBrowserAgents = stored ? JSON.parse(stored) : [];
     
     // Only return real cross-browser agents (no mock data)
@@ -97,7 +97,7 @@ export async function discoverAgentsFromBlockchain(): Promise<BlockchainAgent[]>
     // In production, this would:
     // 1. Query blockchain events for minted NFTs
     // 2. Get tokenURI for each NFT
-    // 3. Fetch metadata from 0G Storage
+    // 3. Fetch metadata from IPFS Storage
     // 4. Transform to our format
     
     console.log('🔍 Discovering agents from blockchain...');
