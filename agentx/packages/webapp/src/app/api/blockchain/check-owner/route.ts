@@ -1,6 +1,6 @@
 // API route for checking NFT ownership
 import { NextRequest, NextResponse } from 'next/server';
-import { ethers } from 'ethers';
+import { createPublicClient, http } from 'viem';
 import { INFT_ABI } from '@/lib/contracts';
 
 export async function POST(request: NextRequest) {
@@ -18,18 +18,30 @@ export async function POST(request: NextRequest) {
     
     // Connect to 0G Network
     const OG_RPC_URL = process.env.NEXT_PUBLIC_0G_RPC_URL || 'https://evmrpc-testnet.0g.ai';
-    const provider = new ethers.JsonRpcProvider(OG_RPC_URL);
-    const contract = new ethers.Contract(contractAddress, INFT_ABI, provider);
+    const publicClient = createPublicClient({
+      transport: http(OG_RPC_URL),
+    });
     
     try {
       // Check ownership
-      const owner = await contract.ownerOf(tokenId);
+      const owner = await publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: INFT_ABI,
+        functionName: 'ownerOf',
+        args: [BigInt(tokenId)],
+      });
+      
       const isOwner = owner.toLowerCase() === userAddress.toLowerCase();
       
       let tokenURI = "";
       if (isOwner) {
         try {
-          tokenURI = await contract.tokenURI(tokenId);
+          tokenURI = await publicClient.readContract({
+            address: contractAddress as `0x${string}`,
+            abi: INFT_ABI,
+            functionName: 'tokenURI',
+            args: [BigInt(tokenId)],
+          });
         } catch (uriError) {
           console.log(`Token ${tokenId} has no URI:`, uriError);
         }
@@ -47,7 +59,8 @@ export async function POST(request: NextRequest) {
     } catch (contractError: any) {
       // Token doesn't exist or other contract error
       if (contractError.message?.includes('ERC721: invalid token ID') || 
-          contractError.message?.includes('owner query for nonexistent token')) {
+          contractError.message?.includes('owner query for nonexistent token') ||
+          contractError.message?.includes('nonexistent token')) {
         return NextResponse.json({
           success: true,
           isOwner: false,

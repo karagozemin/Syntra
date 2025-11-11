@@ -11,37 +11,8 @@ import type { CreatedAgent } from "./createdAgents";
 const GLOBAL_AGENTS_KEY = 'agentx_global_agents';
 
 // Simulate blockchain-discovered agents (visible across all browsers)
-const SIMULATED_BLOCKCHAIN_AGENTS: BlockchainAgent[] = [
-  {
-    tokenId: "blockchain-1",
-    owner: "0xa9b8305C821dC2221dfDEcaacCa8AF5abB1D1788", 
-    tokenURI: "0g://storage/blockchain-agent-1",
-    creator: "0xa9b8305C821dC2221dfDEcaacCa8AF5abB1D1788",
-    discoveredAt: new Date(Date.now() - 1800000).toISOString() // 30 min ago
-  },
-  // Add some mock created agents that appear in all browsers
-  {
-    tokenId: "1755780468531", // Your example timestamp
-    owner: "0xa9b8305C821dC2221dfDEcaacCa8AF5abB1D1788",
-    tokenURI: "0g://storage/mock-created-agent",
-    creator: "0xa9b8305C821dC2221dfDEcaacCa8AF5abB1D1788",
-    discoveredAt: new Date(Date.now() - 900000).toISOString() // 15 min ago
-  },
-  // Add the user's created agent for cross-browser visibility
-  {
-    tokenId: "1755781776137",
-    owner: "0x267C...99D7", 
-    tokenURI: "0g://storage/user-created-agent",
-    creator: "0x267C...99D7",
-    discoveredAt: new Date(Date.now() - 300000).toISOString(), // 5 min ago
-    // Full agent data for display
-    name: "New test",
-    description: "0g",
-    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop&crop=center",
-    category: "Art",
-    price: "0.0321"
-  }
-];
+// REMOVED: Mock data - only use real blockchain data
+const SIMULATED_BLOCKCHAIN_AGENTS: BlockchainAgent[] = [];
 
 export interface BlockchainAgent {
   tokenId: string;
@@ -99,17 +70,12 @@ export function getGlobalAgents(): BlockchainAgent[] {
     const stored = localStorage.getItem('0gents_cross_browser_agents');
     const crossBrowserAgents = stored ? JSON.parse(stored) : [];
     
-    // Add the default blockchain agents
-    const allAgents = [
-      ...crossBrowserAgents,
-      ...SIMULATED_BLOCKCHAIN_AGENTS
-    ];
-    
-    console.log(`🌐 Cross-browser agents: ${crossBrowserAgents.length} stored + ${SIMULATED_BLOCKCHAIN_AGENTS.length} default = ${allAgents.length} total`);
-    return allAgents;
+    // Only return real cross-browser agents (no mock data)
+    console.log(`🌐 Cross-browser agents: ${crossBrowserAgents.length} real agents`);
+    return crossBrowserAgents;
   } catch (error) {
     console.error('Failed to load global agents:', error);
-    return [...SIMULATED_BLOCKCHAIN_AGENTS];
+    return [];
   }
 }
 

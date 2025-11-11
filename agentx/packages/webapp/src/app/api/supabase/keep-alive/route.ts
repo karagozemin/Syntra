@@ -67,7 +67,7 @@ export async function POST() {
       };
 
       const { data, error } = await supabase
-        .from('unified_agents')
+        .from('agents')
         .insert(agentData)
         .select()
         .single();
@@ -86,7 +86,7 @@ export async function POST() {
 
     // Get total count
     const { count } = await supabase
-      .from('unified_agents')
+      .from('agents')
       .select('id', { count: 'exact', head: true });
 
     return NextResponse.json({
@@ -111,7 +111,7 @@ export async function GET() {
   try {
     // Simple query to keep Supabase active
     const { data, error, count } = await supabase
-      .from('unified_agents')
+      .from('agents')
       .select('id, name, category, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })
       .limit(10);

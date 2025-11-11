@@ -78,20 +78,31 @@ export async function POST(request: NextRequest) {
     // 🚀 PRIORITY 1: Save to Supabase (persistent storage)
     try {
       const dbData = transformUnifiedAgentToDB(newAgent);
+      console.log('📤 Sending to Supabase:', {
+        id: dbData.id,
+        name: dbData.name,
+        creator: dbData.creator,
+        agent_contract_address: dbData.agent_contract_address
+      });
+      
       const { data, error } = await supabase
-        .from('unified_agents')
+        .from('agents')
         .insert(dbData)
         .select()
         .single();
 
       if (error) {
-        console.error('Supabase save failed:', error);
+        console.error('❌ Supabase save failed:', error);
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error details:', error.details);
         // Continue with memory storage as fallback
       } else {
-        console.log('INFT saved to Supabase:', data.name);
+        console.log('✅ INFT saved to Supabase:', data.name);
+        console.log('✅ Supabase ID:', data.id);
       }
     } catch (supabaseError) {
-      console.error('Supabase connection failed:', supabaseError);
+      console.error('❌ Supabase connection failed:', supabaseError);
       // Continue with memory storage as fallback
     }
     
@@ -137,7 +148,7 @@ export async function GET(request: NextRequest) {
     // 🚀 PRIORITY 1: Try to load from Supabase
     try {
       let query = supabase
-        .from('unified_agents')
+        .from('agents')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -148,9 +159,10 @@ export async function GET(request: NextRequest) {
       if (owner) {
         query = query.eq('current_owner', owner);
       }
-      if (active !== null) {
-        query = query.eq('active', active === 'true');
-      }
+      // Note: 'active' column may not exist in agents table, skip filter if not available
+      // if (active !== null) {
+      //   query = query.eq('active', active === 'true');
+      // }
       if (category) {
         query = query.ilike('category', category);
       }
@@ -234,7 +246,7 @@ export async function PUT(request: NextRequest) {
     // 🚀 PRIORITY 1: Update in Supabase
     try {
       const { data, error } = await supabase
-        .from('unified_agents')
+        .from('agents')
         .update({
           name: updates.name,
           description: updates.description,
@@ -347,7 +359,7 @@ export async function DELETE(request: NextRequest) {
     // 🚀 PRIORITY 1: Update in Supabase (mark as sold)
     try {
       const { data, error } = await supabase
-        .from('unified_agents')
+        .from('agents')
         .update({
           active: false,
           current_owner: buyerAddress || 'sold'

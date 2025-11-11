@@ -1,6 +1,6 @@
 // API route for creating marketplace listings
 import { NextRequest, NextResponse } from 'next/server';
-import { ethers } from 'ethers';
+import { parseEther } from 'viem';
 import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from '@/lib/contracts';
 
 export interface MarketplaceListing {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       tokenId: listingData.tokenId || "1",
       seller: listingData.seller,
       price: listingData.price,
-      priceWei: ethers.parseEther(listingData.price).toString(),
+      priceWei: parseEther(listingData.price).toString(), // Use viem's parseEther
       name: listingData.name || "AI Agent",
       description: listingData.description || "AI Agent NFT",
       image: listingData.image || "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop&crop=center",

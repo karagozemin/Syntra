@@ -225,7 +225,7 @@ See [SETUP.md](./SETUP.md) for complete configuration guide including:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request
 
 ### Development Workflow
 

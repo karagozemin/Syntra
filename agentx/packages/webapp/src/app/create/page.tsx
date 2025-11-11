@@ -35,6 +35,10 @@ export default function CreatePage() {
   const [progressSteps, setProgressSteps] = useState<string[]>([]);
   const [agentContractAddress, setAgentContractAddress] = useState("");
   const [storageResult, setStorageResult] = useState<any>(null);
+  const [manualCreateHash, setManualCreateHash] = useState<`0x${string}` | undefined>(undefined);
+  const [manualMintHash, setManualMintHash] = useState<`0x${string}` | undefined>(undefined);
+  const [manualApproveHash, setManualApproveHash] = useState<`0x${string}` | undefined>(undefined);
+  const [manualListHash, setManualListHash] = useState<`0x${string}` | undefined>(undefined);
   
   const { address, isConnected } = useAccount();
 
@@ -43,25 +47,25 @@ export default function CreatePage() {
     setMounted(true);
   }, []);
   
-  const { writeContract, data: createHash, isPending: isCreatePending } = useWriteContract();
-  const { writeContract: writeMint, data: mintHash, isPending: isMintPending } = useWriteContract();
-  const { writeContract: writeApprove, data: approveHash, isPending: isApprovePending } = useWriteContract();
-  const { writeContract: writeList, data: listHash, isPending: isListPending } = useWriteContract();
+  const { writeContract, writeContractAsync, data: createHash, isPending: isCreatePending, error: createError } = useWriteContract();
+  const { writeContract: writeMint, writeContractAsync: writeMintAsync, data: mintHash, isPending: isMintPending, error: mintError } = useWriteContract();
+  const { writeContract: writeApprove, writeContractAsync: writeApproveAsync, data: approveHash, isPending: isApprovePending, error: approveError } = useWriteContract();
+  const { writeContract: writeList, writeContractAsync: writeListAsync, data: listHash, isPending: isListPending, error: listError } = useWriteContract();
   
   const { isLoading: isCreateLoading, isSuccess: isCreateSuccess } = useWaitForTransactionReceipt({
-    hash: createHash,
+    hash: manualCreateHash || createHash,
   });
   
   const { isLoading: isMintLoading, isSuccess: isMintSuccess } = useWaitForTransactionReceipt({
-    hash: mintHash,
+    hash: manualMintHash || mintHash,
   });
   
   const { isLoading: isApproveLoading, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({
-    hash: approveHash,
+    hash: manualApproveHash || approveHash,
   });
   
-  const { isLoading: isListLoading, isSuccess: isListSuccess } = useWaitForTransactionReceipt({
-    hash: listHash,
+  const { isLoading: isListLoading, isSuccess: isListSuccess, data: listReceipt } = useWaitForTransactionReceipt({
+    hash: manualListHash || listHash,
   });
 
   const updateProgress = (step: string) => {
@@ -122,7 +126,7 @@ export default function CreatePage() {
     }
 
     if (!name || !desc || !price) {
-      alert("Please fill in all required fields");
+      alert("Please fill in all required fields (Name, Description, Price)");
       return;
     }
     
@@ -130,6 +134,18 @@ export default function CreatePage() {
       alert("Name and description cannot be empty");
       return;
     }
+
+    // Validate price
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      alert("Price must be a positive number (e.g., 0.075)");
+      return;
+    }
+
+    // Ensure capabilities (use defaults if empty for classic mode)
+    const finalCapabilities = capabilities && capabilities.length > 0 
+      ? capabilities 
+      : ['nlp', 'automation']; // Default capabilities
 
     // Create wizardData-like object from state
     const formData = {
@@ -141,7 +157,7 @@ export default function CreatePage() {
       xHandle,
       website,
       aiModel,
-      capabilities
+      capabilities: finalCapabilities
     };
 
     // Use the same creation flow
@@ -232,7 +248,12 @@ export default function CreatePage() {
       updateProgress("🎯 Step 3: Creating Agent Contract...");
       console.log("🎯 Step 3: Creating Agent Contract via Factory...");
       
-      const capabilitiesForContract = wizardData.capabilities.map((cap: string) => {
+      // Ensure capabilities are not empty
+      const rawCapabilities = wizardData.capabilities && wizardData.capabilities.length > 0 
+        ? wizardData.capabilities 
+        : ['nlp', 'automation']; // Default capabilities if empty
+      
+      const capabilitiesForContract = rawCapabilities.map((cap: string) => {
         const capMap: Record<string, string> = {
           nlp: "Natural Language Processing",
           automation: "Task Automation",
@@ -246,6 +267,18 @@ export default function CreatePage() {
         return capMap[cap] || cap;
       }).slice(0, 3); // Take first 3 capabilities
       
+      console.log("📋 Capabilities for contract:", capabilitiesForContract);
+      
+      // Validate and sanitize price
+      let priceValue = wizardData.price || "0.075";
+      const priceNumber = parseFloat(priceValue);
+      
+      // Ensure price is positive and valid
+      if (isNaN(priceNumber) || priceNumber < 0) {
+        console.warn("Invalid price detected:", priceValue, "using default 0.075");
+        priceValue = "0.075";
+      }
+      
       const finalArgs: [string, string, string, string, string, string[], bigint] = [
         wizardData.name.trim(),
         wizardData.description.trim(),
@@ -253,7 +286,7 @@ export default function CreatePage() {
         wizardData.aiModel || "gpt-4",
         uploadResult.hash || "dummy-hash",
         capabilitiesForContract,
-        parseEther(wizardData.price || "0.075")
+        parseEther(priceValue)
       ];
       
       // Validate arguments
@@ -262,13 +295,19 @@ export default function CreatePage() {
       }
       
       // Create new Agent NFT Contract
-      console.log("🔥 About to call writeContract (createAgent) with:", {
-        address: FACTORY_ADDRESS,
-        functionName: "createAgent",
-        args: finalArgs,
-        value: formatEther(parseEther("0.0001")) + " MATIC",
-        gas: "1500000"
-      });
+      console.log("🔥 About to call writeContract (createAgent) with:");
+      console.log("  📍 Factory Address:", FACTORY_ADDRESS);
+      console.log("  📝 Function:", "createAgent");
+      console.log("  📊 Arguments:");
+      console.log("    - Name:", finalArgs[0]);
+      console.log("    - Description:", finalArgs[1]);
+      console.log("    - Category:", finalArgs[2]);
+      console.log("    - AI Model:", finalArgs[3]);
+      console.log("    - Storage Hash:", finalArgs[4]);
+      console.log("    - Capabilities:", finalArgs[5]);
+      console.log("    - Price (wei):", finalArgs[6].toString());
+      console.log("    - Price (ETH):", formatEther(finalArgs[6]));
+      console.log("  💰 Value:", formatEther(parseEther("0.0001")), "MATIC");
       
       console.log("🔍 Wallet connection status:", {
         isConnected,
@@ -276,17 +315,36 @@ export default function CreatePage() {
         factoryAddress: FACTORY_ADDRESS
       });
       
-      writeContract({
-        address: FACTORY_ADDRESS as `0x${string}`,
-        abi: FACTORY_ABI,
-        functionName: "createAgent",
-        args: finalArgs,
-        value: parseEther("0.0001"), // Factory creation fee (0.0001 MATIC)
-        // Let Wagmi estimate gas automatically - no manual gas settings
-      });
-
-      updateProgress("✅ Step 3: Agent Contract creation submitted - waiting for confirmation...");
-      console.log("✅ Step 3: Agent Contract creation submitted");
+      try {
+        updateProgress("⏳ Waiting for MetaMask approval...");
+        console.log("🔥 Sending transaction to MetaMask...");
+        
+        const hash = await writeContractAsync({
+          address: FACTORY_ADDRESS as `0x${string}`,
+          abi: FACTORY_ABI,
+          functionName: "createAgent",
+          args: finalArgs,
+          value: parseEther("0.0001"), // Factory creation fee (0.0001 MATIC)
+          gas: BigInt(3000000), // 3M gas for contract creation
+          maxFeePerGas: BigInt(100000000000), // 100 gwei
+          maxPriorityFeePerGas: BigInt(40000000000), // 40 gwei
+        });
+        
+        // Store the hash in state so useWaitForTransactionReceipt can track it
+        console.log("✅ Transaction submitted! Hash:", hash);
+        setManualCreateHash(hash);
+        updateProgress(`✅ Step 3: Transaction submitted! Hash: ${hash.slice(0, 10)}...`);
+        updateProgress("⏳ Waiting for blockchain confirmation...");
+      } catch (contractError: any) {
+        console.error("❌ Create contract error:", contractError);
+        if (contractError?.message?.includes("User rejected") || contractError?.code === 4001 || contractError?.name === "UserRejectedRequestError") {
+          throw new Error("Transaction rejected by user");
+        } else if (contractError?.message?.includes("Internal JSON-RPC error")) {
+          throw new Error("Gas estimation failed. Please try again or check your network connection.");
+        } else {
+          throw contractError;
+        }
+      }
       
     } catch (error) {
       console.error("Agent creation error:", error);
@@ -317,32 +375,20 @@ export default function CreatePage() {
         }
       }
       
-      // Check if storage was successful even if other parts failed
-      if (storageResult && storageResult.success) {
-        console.log("✅ Storage was successful, showing partial success");
-        updateProgress("✅ Storage upload completed successfully!");
-        updateProgress("⚠️ Some steps had issues, but your data is safely stored on IPFS");
-        
-        setCreatedAgent({
-          name: name,
-          description: desc,
-          contractAddress: "Partially created - storage successful",
-          storageUri: storageResult.uri || "ipfs://storage/success",
-          txHash: "Storage completed successfully"
-        });
-        
-        setIsCreating(false);
-      } else {
-        // Show user-friendly error only if storage also failed
-        alert(`Failed to create agent: ${errorMessage}`);
-        setIsCreating(false);
-      }
+      // Don't show success for partial completion - let user see the error
+      console.error("❌ Creation failed, not showing success screen");
+      updateProgress("❌ Creation process failed - please try again");
+      
+      // Show user-friendly error
+      alert(`Failed to create agent: ${errorMessage}`);
+      setIsCreating(false);
     }
   };
 
   // Handle successful contract creation - Extract contract address
   useEffect(() => {
-    if (isCreateSuccess && createHash && !agentContractAddress) {
+    const hash = manualCreateHash || createHash;
+    if (isCreateSuccess && hash && !agentContractAddress) {
       updateProgress("✅ Agent contract created successfully!");
       console.log("Agent Contract created on Polygon Amoy!");
       
@@ -354,7 +400,7 @@ export default function CreatePage() {
           await new Promise(resolve => setTimeout(resolve, 5000));
           
           // Method 1: Parse transaction receipt for AgentContractCreated event
-          console.log("🎯 Getting transaction receipt for hash:", createHash);
+          console.log("🎯 Getting transaction receipt for hash:", hash);
           
           const txReceipt = await fetch(process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/', {
             method: 'POST',
@@ -362,7 +408,7 @@ export default function CreatePage() {
             body: JSON.stringify({
               jsonrpc: '2.0',
               method: 'eth_getTransactionReceipt',
-              params: [createHash],
+              params: [hash],
               id: 900
             })
           });
@@ -404,23 +450,88 @@ export default function CreatePage() {
               // Step 4: Mint NFT on the agent contract
               console.log("🔄 Step 4: Minting NFT on agent contract...");
               
+              // First, check if NFT is already minted
               try {
-                console.log("🔥 About to call writeMint with:", {
+                console.log("🔍 Checking if NFT is already minted...");
+                const balanceCheck = await fetch(process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    method: 'eth_call',
+                    params: [{
+                      to: contractAddress,
+                      data: '0x70a08231' + address?.slice(2).padStart(64, '0') // balanceOf(address)
+                    }, 'latest'],
+                    id: 1
+                  })
+                });
+                
+                const balanceResult = await balanceCheck.json();
+                const balance = balanceResult.result ? parseInt(balanceResult.result, 16) : 0;
+                
+                if (balance > 0) {
+                  console.log("⚠️ NFT already minted! Balance:", balance);
+                  updateProgress("⚠️ NFT already minted - proceeding to marketplace listing");
+                  updateProgress("🔄 Step 5: Approving marketplace...");
+                  
+                  // Skip to approval step
+                  setManualMintHash(hash); // Use create hash as placeholder
+                  return;
+                }
+              } catch (checkError) {
+                console.warn("⚠️ Could not check mint status, proceeding with mint:", checkError);
+              }
+              
+              try {
+                console.log("🔥 About to call writeMintAsync with:", {
                   address: contractAddress,
                   functionName: "mint",
                   args: [storageResult?.uri || ""],
                   abi: "AGENT_NFT_ABI"
                 });
                 
-                writeMint({
-                  address: contractAddress as `0x${string}`,
-                  abi: AGENT_NFT_ABI,
-                  functionName: "mint",
-                  args: [storageResult?.uri || ""], // Use storage URI for tokenURI
-                });
+                updateProgress("⏳ Waiting for MetaMask approval to mint NFT...");
                 
-                updateProgress("✅ Step 4: NFT minting submitted...");
-                console.log("✅ Step 4: NFT minting submitted");
+                try {
+                  const mintTxHash = await writeMintAsync({
+                    address: contractAddress as `0x${string}`,
+                    abi: AGENT_NFT_ABI,
+                    functionName: "mint",
+                    args: [storageResult?.uri || ""], // Use storage URI for tokenURI
+                    gas: BigInt(500000), // Manuel gas limit (500k)
+                    maxFeePerGas: BigInt(100000000000), // 100 gwei
+                    maxPriorityFeePerGas: BigInt(40000000000), // 40 gwei
+                  });
+                  
+                  console.log("✅ Mint transaction submitted! Hash:", mintTxHash);
+                  updateProgress(`✅ Step 4: NFT minting submitted! Hash: ${mintTxHash.slice(0, 10)}...`);
+                  updateProgress("⏳ Waiting for mint confirmation...");
+                } catch (mintError: any) {
+                  console.error("❌ Mint transaction error:", mintError);
+                  console.error("❌ Error details:", JSON.stringify(mintError, null, 2));
+                  console.error("❌ Error cause:", mintError?.cause);
+                  console.error("❌ Error data:", mintError?.data);
+                  
+                  // Check if contract already minted
+                  if (mintError?.message?.includes("ALREADY_MINTED") || 
+                      mintError?.shortMessage?.includes("ALREADY_MINTED") ||
+                      mintError?.details?.includes("ALREADY_MINTED")) {
+                    console.log("⚠️ NFT already minted on this contract");
+                    updateProgress("⚠️ NFT already minted - skipping to next step");
+                    // Continue to approval step
+                    return;
+                  }
+                  
+                  if (mintError?.message?.includes("User rejected") || mintError?.code === 4001 || mintError?.name === "UserRejectedRequestError") {
+                    updateProgress("❌ Transaction rejected by user");
+                  } else if (mintError?.message?.includes("Internal JSON-RPC error")) {
+                    updateProgress("❌ Mint failed: Possible contract issue or already minted");
+                  } else {
+                    updateProgress(`❌ Mint failed: ${mintError?.message || "Unknown error"}`);
+                  }
+                  throw mintError;
+                }
                 
               } catch (mintError) {
                 console.error("❌ NFT minting failed:", mintError);
@@ -488,19 +599,29 @@ export default function CreatePage() {
                 console.log("🔄 Step 4: Minting NFT on agent contract...");
                 
                 try {
-                  writeMint({
+                  updateProgress("⏳ Waiting for MetaMask approval to mint NFT...");
+                  
+                  const mintTxHash = await writeMintAsync({
                     address: contractAddress as `0x${string}`,
                     abi: AGENT_NFT_ABI,
                     functionName: "mint",
                     args: [storageResult?.uri || ""], // Use storage URI for tokenURI
+                    gas: BigInt(500000), // Manuel gas limit (500k)
+                    maxFeePerGas: BigInt(100000000000), // 100 gwei
+                    maxPriorityFeePerGas: BigInt(40000000000), // 40 gwei
                   });
                   
-                  updateProgress("✅ Step 4: NFT minting submitted...");
-                  console.log("✅ Step 4: NFT minting submitted");
+                  console.log("✅ Mint transaction submitted! Hash:", mintTxHash);
+                  updateProgress(`✅ Step 4: NFT minting submitted! Hash: ${mintTxHash.slice(0, 10)}...`);
+                  updateProgress("⏳ Waiting for mint confirmation...");
                   
-                } catch (mintError) {
+                } catch (mintError: any) {
                   console.error("❌ NFT minting failed:", mintError);
-                  updateProgress("❌ NFT minting failed");
+                  if (mintError?.message?.includes("User rejected") || mintError?.code === 4001 || mintError?.name === "UserRejectedRequestError") {
+                    updateProgress("❌ Transaction rejected by user");
+                  } else {
+                    updateProgress(`❌ NFT minting failed: ${mintError?.message || "Unknown error"}`);
+                  }
                 }
                 
                 return;
@@ -567,15 +688,34 @@ export default function CreatePage() {
                       abi: "AGENT_NFT_ABI"
                     });
                     
-                    writeMint({
-                      address: contractAddress as `0x${string}`,
-                      abi: AGENT_NFT_ABI,
-                      functionName: "mint",
-                      args: [storageResult?.uri || ""], // Use storage URI for tokenURI
-                    });
-                    
-                    updateProgress("✅ Step 4: NFT minting submitted...");
-                    console.log("✅ Step 4: NFT minting submitted");
+                    try {
+                      updateProgress("⏳ Waiting for MetaMask approval to mint NFT...");
+                      
+                      const mintTxHash = await writeMintAsync({
+                        address: contractAddress as `0x${string}`,
+                        abi: AGENT_NFT_ABI,
+                        functionName: "mint",
+                        args: [storageResult?.uri || ""], // Use storage URI for tokenURI
+                        gas: BigInt(500000), // Manuel gas limit (500k)
+                        maxFeePerGas: BigInt(100000000000), // 100 gwei
+                        maxPriorityFeePerGas: BigInt(40000000000), // 40 gwei
+                      });
+                      
+                      console.log("✅ Mint transaction submitted! Hash:", mintTxHash);
+                      setManualMintHash(mintTxHash);
+                      updateProgress(`✅ Step 4: NFT minting submitted! Hash: ${mintTxHash.slice(0, 10)}...`);
+                      updateProgress("⏳ Waiting for mint confirmation...");
+                    } catch (mintError: any) {
+                      console.error("❌ Mint transaction error:", mintError);
+                      if (mintError?.message?.includes("User rejected") || mintError?.code === 4001 || mintError?.name === "UserRejectedRequestError") {
+                        updateProgress("❌ Transaction rejected by user");
+                      } else if (mintError?.message?.includes("Internal JSON-RPC error")) {
+                        updateProgress("❌ Gas estimation failed. Please try again.");
+                      } else {
+                        updateProgress(`❌ Mint failed: ${mintError?.message || "Unknown error"}`);
+                      }
+                      throw mintError;
+                    }
                     
                   } catch (mintError) {
                     console.error("❌ NFT minting failed:", mintError);
@@ -589,56 +729,63 @@ export default function CreatePage() {
           
           // Final fallback: Show error - we couldn't extract contract address
           console.error("❌ All methods failed to extract contract address");
-          updateProgress("❌ Could not extract agent contract address. Please check transaction on explorer.");
+          updateProgress("❌ Could not extract agent contract address. Process incomplete.");
           
-          // Show the transaction hash so user can check manually
-          setCreatedAgent({
-            name: name,
-            description: desc,
-            contractAddress: `Check transaction: ${createHash}`,
-            storageUri: storageResult?.uri || "0g://storage/success",
-            txHash: createHash
-          });
-          
+          // Don't show success - this is a failure
+          alert(`Contract created but couldn't find address. Transaction: ${hash.slice(0, 10)}...`);
           setIsCreating(false);
           return;
           
         } catch (error) {
           console.error("❌ Contract address extraction failed:", error);
-          console.log("✅ But storage upload was successful, showing success anyway");
+          updateProgress("❌ Failed to extract contract address - process incomplete");
           
-          // Show success even if contract extraction fails
-          updateProgress("✅ Agent created successfully on 0G Network!");
-          updateProgress("📦 Storage upload completed, contract deployed!");
-          
-          setCreatedAgent({
-            name: name,
-            description: desc,
-            contractAddress: "Successfully created on 0G Network",
-            storageUri: storageResult?.uri || "0g://storage/success",
-            txHash: createHash
-          });
-          
+          // Don't show success for incomplete process
+          alert(`Contract address extraction failed. Transaction: ${hash?.slice(0, 10)}...`);
           setIsCreating(false);
         }
       };
 
       extractContractAddress();
     }
-  }, [isCreateSuccess, createHash, agentContractAddress]);
+  }, [isCreateSuccess, manualCreateHash, createHash, agentContractAddress]);
 
   // Handle successful NFT minting - Step 5: Approve marketplace then list
   useEffect(() => {
-    if (isMintSuccess && mintHash && agentContractAddress && !approveHash) {
-      console.log("✅ NFT MINT CONFIRMED! Transaction:", mintHash);
-      updateProgress(`✅ NFT minted successfully! Tx: ${mintHash}`);
+    const mintTxHash = manualMintHash || mintHash;
+    if (isMintSuccess && mintTxHash && agentContractAddress && !(manualApproveHash || approveHash)) {
+      console.log("✅ NFT MINT CONFIRMED! Transaction:", mintTxHash);
+      updateProgress(`✅ NFT minted successfully! Tx: ${mintTxHash}`);
       console.log("NFT minted successfully!");
+      
+      // Add NFT to MetaMask
+      try {
+        if (typeof window !== 'undefined' && window.ethereum) {
+          window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC721',
+              options: {
+                address: agentContractAddress,
+                tokenId: '1',
+              },
+            },
+          }).then(() => {
+            console.log("✅ NFT added to MetaMask!");
+            updateProgress("✅ NFT added to MetaMask wallet!");
+          }).catch((error: any) => {
+            console.log("⚠️ Could not add NFT to MetaMask:", error);
+          });
+        }
+      } catch (error) {
+        console.log("⚠️ MetaMask not available:", error);
+      }
       
       const handleApproval = async () => {
         try {
-          // Wait 3 seconds to ensure mint is fully indexed
-          console.log("⏳ Waiting 3s for mint to be indexed...");
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          // Wait 2 seconds to ensure mint is fully indexed
+          console.log("⏳ Waiting 2s for mint to be indexed...");
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
           updateProgress("🔄 Step 5: Approving marketplace...");
           console.log("🔄 Step 5: Approving marketplace for NFT transfer...");
@@ -646,18 +793,37 @@ export default function CreatePage() {
           console.log("🔍 Marketplace:", MARKETPLACE_ADDRESS);
           
           // First approve marketplace to transfer the NFT
-          writeApprove({
-            address: agentContractAddress as `0x${string}`,
-            abi: INFT_ABI, // Use INFT_ABI which has approve function
-            functionName: "approve", 
-            args: [
-              MARKETPLACE_ADDRESS as `0x${string}`, // Marketplace address
-              BigInt(1) // Token ID (always 1 for agent NFTs)
-            ],
-          });
-
-          updateProgress("✅ Step 5: Marketplace approval submitted...");
-          console.log("✅ Step 5: Marketplace approval submitted");
+          try {
+            updateProgress("⏳ Waiting for MetaMask approval...");
+            
+            const approveTxHash = await writeApproveAsync({
+              address: agentContractAddress as `0x${string}`,
+              abi: INFT_ABI, // Use INFT_ABI which has approve function
+              functionName: "approve", 
+              args: [
+                MARKETPLACE_ADDRESS as `0x${string}`, // Marketplace address
+                BigInt(1) // Token ID (always 1 for agent NFTs)
+              ],
+              gas: BigInt(200000), // 200k gas for approval
+              maxFeePerGas: BigInt(100000000000), // 100 gwei
+              maxPriorityFeePerGas: BigInt(40000000000), // 40 gwei
+            });
+            
+            console.log("✅ Approval transaction submitted! Hash:", approveTxHash);
+            setManualApproveHash(approveTxHash);
+            updateProgress(`✅ Step 5: Marketplace approval submitted! Hash: ${approveTxHash.slice(0, 10)}...`);
+            updateProgress("⏳ Waiting for approval confirmation...");
+          } catch (approveError: any) {
+            console.error("❌ Approval transaction error:", approveError);
+            if (approveError?.message?.includes("User rejected") || approveError?.code === 4001 || approveError?.name === "UserRejectedRequestError") {
+              updateProgress("❌ Transaction rejected by user");
+            } else if (approveError?.message?.includes("Internal JSON-RPC error")) {
+              updateProgress("❌ Gas estimation failed. Please try again.");
+            } else {
+              updateProgress(`❌ Approval failed: ${approveError?.message || "Unknown error"}`);
+            }
+            throw approveError;
+          }
           
         } catch (error) {
           console.error("❌ Approval failed:", error);
@@ -667,45 +833,113 @@ export default function CreatePage() {
 
       handleApproval();
     }
-  }, [isMintSuccess, mintHash, agentContractAddress, approveHash]);
+  }, [isMintSuccess, manualMintHash, mintHash, agentContractAddress, manualApproveHash, approveHash]);
 
   // Handle successful approval - Step 6: List on marketplace
   useEffect(() => {
-    if (isApproveSuccess && approveHash && agentContractAddress && !listHash) {
-      console.log("✅ APPROVE CONFIRMED! Transaction:", approveHash);
-      updateProgress(`✅ Marketplace approved successfully! Tx: ${approveHash}`);
+    const approveTxHash = manualApproveHash || approveHash;
+    if (isApproveSuccess && approveTxHash && agentContractAddress && !(manualListHash || listHash)) {
+      console.log("✅ APPROVE CONFIRMED! Transaction:", approveTxHash);
+      updateProgress(`✅ Marketplace approved successfully! Tx: ${approveTxHash}`);
       console.log("Marketplace approved successfully!");
       
       const handleListing = async () => {
         try {
-          // Wait 3 seconds to ensure approval is fully indexed
-          console.log("⏳ Waiting 3s for approval to be indexed...");
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          // Wait and verify approval on-chain
+          console.log("⏳ Waiting 2s for approval to be indexed...");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Verify approval on-chain before listing
+          updateProgress("🔍 Verifying approval on-chain...");
+          const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/';
+          
+          try {
+            // Check getApproved(tokenId) == marketplace
+            const approvalCheck = await fetch(rpcUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'eth_call',
+                params: [{
+                  to: agentContractAddress,
+                  data: '0x081812fc' + BigInt(1).toString(16).padStart(64, '0') // getApproved(uint256)
+                }, 'latest'],
+                id: 1
+              })
+            });
+            
+            const approvalResult = await approvalCheck.json();
+            const approvedAddress = '0x' + (approvalResult.result?.slice(-40) || '');
+            const marketplaceLower = MARKETPLACE_ADDRESS?.toLowerCase();
+            const approvedLower = approvedAddress.toLowerCase();
+            
+            console.log("🔍 Approval check:", {
+              approvedAddress,
+              marketplaceAddress: MARKETPLACE_ADDRESS,
+              match: approvedLower === marketplaceLower
+            });
+            
+            if (approvedLower !== marketplaceLower && approvedAddress !== '0x0000000000000000000000000000000000000000') {
+              console.warn("⚠️ Approval address mismatch, but continuing...");
+            }
+          } catch (checkError) {
+            console.warn("⚠️ Could not verify approval on-chain, continuing anyway:", checkError);
+          }
           
           updateProgress("🔄 Step 6: Listing on marketplace...");
           console.log("🔄 Step 6: Listing on marketplace contract...");
+          
+          // Validate and sanitize price before listing
+          let listingPrice = price || "0.075";
+          const listingPriceNumber = parseFloat(listingPrice);
+          
+          if (isNaN(listingPriceNumber) || listingPriceNumber <= 0) {
+            console.warn("⚠️ Invalid listing price detected:", listingPrice, "using default 0.075");
+            listingPrice = "0.075";
+          }
+          
           console.log("🔍 Marketplace listing parameters:", {
             marketplaceAddress: MARKETPLACE_ADDRESS,
             nftContract: agentContractAddress,
             tokenId: 1,
-            price: price,
-            priceWei: parseEther(price || "0.075").toString()
+            price: listingPrice,
+            priceWei: parseEther(listingPrice).toString()
           });
           
           // List on marketplace contract directly
-          writeList({
-            address: MARKETPLACE_ADDRESS as `0x${string}`,
-            abi: MARKETPLACE_ABI,
-            functionName: "list",
-            args: [
-              agentContractAddress as `0x${string}`, // NFT contract address
-              BigInt(1), // Token ID (always 1 for agent NFTs)
-              parseEther(price || "0.075") // Price in wei
-            ],
-          });
-
-          updateProgress("✅ Step 6: Marketplace listing submitted...");
-          console.log("✅ Step 6: Marketplace listing submitted");
+          try {
+            updateProgress("⏳ Waiting for MetaMask approval...");
+            
+            const listTxHash = await writeListAsync({
+              address: MARKETPLACE_ADDRESS as `0x${string}`,
+              abi: MARKETPLACE_ABI,
+              functionName: "list",
+              args: [
+                agentContractAddress as `0x${string}`, // NFT contract address
+                BigInt(1), // Token ID (always 1 for agent NFTs)
+                parseEther(listingPrice) // Price in wei (validated)
+              ],
+              gas: BigInt(300000), // 300k gas for listing
+              maxFeePerGas: BigInt(100000000000), // 100 gwei
+              maxPriorityFeePerGas: BigInt(40000000000), // 40 gwei
+            });
+            
+            console.log("✅ Listing transaction submitted! Hash:", listTxHash);
+            setManualListHash(listTxHash);
+            updateProgress(`✅ Step 6: Marketplace listing submitted! Hash: ${listTxHash.slice(0, 10)}...`);
+            updateProgress("⏳ Waiting for listing confirmation...");
+          } catch (listError: any) {
+            console.error("❌ Listing transaction error:", listError);
+            if (listError?.message?.includes("User rejected") || listError?.code === 4001 || listError?.name === "UserRejectedRequestError") {
+              updateProgress("❌ Transaction rejected by user");
+            } else if (listError?.message?.includes("Internal JSON-RPC error")) {
+              updateProgress("❌ Gas estimation failed. Please try again.");
+            } else {
+              updateProgress(`❌ Listing failed: ${listError?.message || "Unknown error"}`);
+            }
+            throw listError;
+          }
           
         } catch (error) {
           console.error("❌ Listing failed:", error);
@@ -715,113 +949,49 @@ export default function CreatePage() {
 
       handleListing();
     }
-  }, [isApproveSuccess, approveHash, agentContractAddress, listHash, price]);
+  }, [isApproveSuccess, manualApproveHash, approveHash, agentContractAddress, manualListHash, listHash, price]);
 
 
   // Handle successful listing - Step 7: Extract listing ID and save to Supabase
   useEffect(() => {
-    if (isListSuccess && listHash && agentContractAddress) {
-      console.log("✅ LIST CONFIRMED! Transaction:", listHash);
-      updateProgress(`✅ Marketplace listing successful! Tx: ${listHash}`);
+    const listTxHash = manualListHash || listHash;
+    if (isListSuccess && listTxHash && agentContractAddress && listReceipt) {
+      console.log("✅ LIST CONFIRMED! Transaction:", listTxHash);
+      updateProgress(`✅ Marketplace listing successful! Tx: ${listTxHash}`);
       console.log("Marketplace listing successful!");
       
       const handleSaveToDatabase = async () => {
-        // First, try to extract the real listing ID from transaction
+        // First, try to extract the real listing ID from transaction receipt
         let realListingId = 1; // Fallback
         
         try {
           updateProgress("🔍 Extracting listing ID from transaction...");
-          console.log("🔍 Getting listing transaction receipt for hash:", listHash);
+          console.log("🔍 Using Wagmi transaction receipt:", listReceipt);
           
-          const isMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === 'true';
-          const rpcUrl = isMainnet ? 'https://evmrpc.0g.ai' : 'https://evmrpc-testnet.0g.ai';
-          
-          // Retry mechanism for transaction receipt (mainnet can be slow)
-          let txResult: any = null;
-          const maxRetries = 10; // Increased for mainnet reliability
-          
-          for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            console.log(`🔄 Attempt ${attempt}/${maxRetries} to get transaction receipt...`);
+          // Parse logs for Listed event
+          if (listReceipt.logs && listReceipt.logs.length > 0) {
+            console.log("🔍 Found", listReceipt.logs.length, "logs in listing transaction");
             
-            // Dynamic delay: increases with each attempt (5s, 6s, 7s, 8s, ...)
-            const retryDelay = 5000 + (attempt * 1000);
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            // Listed event signature: Listed(uint256 indexed listingId, address indexed nft, uint256 indexed tokenId, address seller, uint256 price)
+            const listedEventSignature = "0x9791797c382de5e73cc7c32c32ffd8304e9b9cc1f6afd967990c1edd0729dba9";
             
-            const txReceipt = await fetch(rpcUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_getTransactionReceipt',
-                params: [listHash],
-                id: 901
-              })
-            });
-            
-            const result = await txReceipt.json();
-            
-            if (result.result && result.result !== null) {
-              txResult = result;
-              console.log(`✅ Transaction receipt received on attempt ${attempt} (waited ${retryDelay/1000}s)`);
-              break;
-            } else {
-              console.log(`⏳ Attempt ${attempt}: Receipt not ready yet, waiting ${retryDelay/1000}s for next attempt...`);
-              if (attempt === maxRetries) {
-                console.log(`❌ Failed to get receipt after ${maxRetries} attempts (${(5*maxRetries + (maxRetries*(maxRetries+1)/2))}s total)`);
-              }
-            }
-          }
-          
-          console.log("📊 Listing transaction receipt:", txResult);
-          
-          // Parse logs for ItemListed event
-          if (txResult.result?.logs && txResult.result.logs.length > 0) {
-            console.log("🔍 Found", txResult.result.logs.length, "logs in listing transaction");
-            
-            // Try multiple possible event signatures for ItemListed/Listed
-            const possibleSignatures = [
-              "0x9791797c382de5e73cc7c32c32ffd8304e9b9cc1f6afd967990c1edd0729dba9", // Listed event (real signature from mainnet)
-              "0x4b5b465e22eea0c3d40c30e936643245b80d19b2dcf75788c0699fe8d8ec660b", // Alternative signature
-              "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925", // Another alternative
-            ];
-            
-            for (const log of txResult.result.logs) {
+            for (const log of listReceipt.logs) {
               console.log("🔍 Checking listing log:", {
                 address: log.address,
                 topics: log.topics,
-                data: log.data
               });
               
-              // Try all possible signatures
-              for (const signature of possibleSignatures) {
-                if (log.topics && log.topics[0] === signature) {
-                  console.log("✅ Found ItemListed event with signature:", signature);
-                  
-                  // First indexed parameter (listingId) is in topics[1]
-                  if (log.topics[1]) {
-                    realListingId = parseInt(log.topics[1], 16);
-                    console.log("🎯 Extracted real listing ID:", realListingId);
-                    updateProgress(`✅ Real listing ID found: ${realListingId}`);
-                    break;
-                  }
-                }
-              }
-              
-              // Also try to extract listing ID from any topic that looks like a number
-              if (log.topics && log.topics.length > 1) {
-                for (let i = 1; i < log.topics.length; i++) {
-                  const topic = log.topics[i];
-                  if (topic && topic.length === 66) { // 0x + 64 hex chars
-                    const possibleId = parseInt(topic, 16);
-                    if (possibleId > 0 && possibleId < 1000000) { // Reasonable listing ID range
-                      console.log(`🔍 Found possible listing ID in topic ${i}:`, possibleId);
-                      if (realListingId === 1) { // Only use if we haven't found a better one
-                        realListingId = possibleId;
-                        console.log("🎯 Using possible listing ID:", realListingId);
-                        updateProgress(`✅ Possible listing ID found: ${realListingId}`);
-                      }
-                    }
-                  }
+              // Check if this is the Listed event from Marketplace contract
+              if (MARKETPLACE_ADDRESS && log.address.toLowerCase() === MARKETPLACE_ADDRESS.toLowerCase() && 
+                  log.topics && log.topics[0] === listedEventSignature) {
+                console.log("✅ Found Listed event!");
+                
+                // listingId is in topics[1] (first indexed parameter)
+                if (log.topics[1]) {
+                  realListingId = Number(log.topics[1]);
+                  console.log("🎯 Extracted real listing ID:", realListingId);
+                  updateProgress(`✅ Real listing ID found: ${realListingId}`);
+                  break;
                 }
               }
             }
@@ -831,9 +1001,10 @@ export default function CreatePage() {
           console.log("🔄 Using fallback listing ID:", realListingId);
         }
         
-              // BYPASS VALIDATION FOR SUBMISSION - ASSUME LISTING EXISTS
-              console.log("🚀 BYPASSING validation for submission - assuming listing exists");
-              updateProgress("✅ Listing validation bypassed - proceeding with save");
+        // BYPASS VALIDATION FOR SUBMISSION - ASSUME LISTING EXISTS
+        console.log("🚀 BYPASSING validation for submission - assuming listing exists");
+        updateProgress("✅ Listing validation bypassed - proceeding with save");
+        
         try {
           updateProgress("🔄 Step 6: Saving to database...");
           console.log("🔄 Step 6: Saving to unified system and Supabase...");
@@ -847,140 +1018,70 @@ export default function CreatePage() {
             description: desc,
             image: image || "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop&crop=center",
             category: category || "General",
-            price: price,
-            priceWei: parseEther(price || "0.075").toString(),
+            price: price || "0.075",
             creator: address || "",
-            currentOwner: address || "",
-            txHash: listHash,
-            storageUri: storageResult?.uri || "",
-            listingId: realListingId, // Use the real listing ID from blockchain
-            active: true,
-            social: {
-              x: xHandle ? `https://x.com/${xHandle.replace('@', '')}` : undefined,
-              website: website || undefined
-            },
-            capabilities: [
-              "Natural Language Processing",
-              "Task Automation",
-              category || "General Purpose"
-            ],
-            computeModel: "gpt-4"
+            xHandle: xHandle || "",
+            website: website || "",
+            storageUri: storageResult?.hash || "",
+            listingId: Number(realListingId), // Convert to number
+            txHash: listTxHash,
+            blockNumber: typeof listReceipt.blockNumber === 'bigint' ? listReceipt.blockNumber.toString() : String(listReceipt.blockNumber), // Convert BigInt to string
           };
           
-          // Save to unified system (includes Supabase)
+          // Save to unified system
+          console.log("🔄 About to save agent to Supabase:", {
+            id: unifiedAgentData.id,
+            name: unifiedAgentData.name,
+            creator: unifiedAgentData.creator,
+            contractAddress: unifiedAgentData.agentContractAddress
+          });
+          
           const saveResult = await saveUnifiedAgent(unifiedAgentData);
           
+          console.log("📊 Save result:", saveResult);
+          
           if (saveResult.success) {
-            updateProgress("✅ Step 6: Saved to database successfully!");
             console.log("✅ Agent saved to unified system and Supabase");
-            
-            // Also save marketplace listing with real listing ID
-            const listingData = {
+            updateProgress("✅ Agent saved successfully to database!");
+          } else {
+            console.error("❌ Failed to save agent:", saveResult.error);
+            updateProgress("⚠️ Agent created but failed to save to database");
+          }
+          
+          // Save listing to server
+          try {
+            await saveListingToServer({
               agentContractAddress: agentContractAddress,
               tokenId: "1",
               seller: address || "",
-              price: price,
+              price: price || "0.075",
               name: name,
               description: desc,
               image: image || "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop&crop=center",
               category: category || "General",
-              txHash: listHash,
-              realListingId: realListingId // Pass the real listing ID
-            };
-            
-            const listingResult = await saveListingToServer(listingData);
-            
-            if (listingResult.success) {
-              updateProgress("✅ Step 7: Marketplace listing saved!");
-              console.log("✅ Marketplace listing saved with ID:", listingResult.listingId);
-            }
-            
-            updateProgress("🎉 Agent creation and listing completed successfully!");
-            
-            // Create final success agent object
-            const timestamp = Date.now();
-            const successAgent = {
-              id: `${timestamp}`,
-              tokenId: "1",
-              name,
-              description: desc,
-              image: image || "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop&crop=center",
-              category: category || "General",
-              creator: address || "",
-              price,
-              txHash: listHash,
-              storageUri: storageResult?.uri || "",
-              agentContractAddress: agentContractAddress,
-              social: {
-                x: xHandle ? `https://x.com/${xHandle.replace('@', '')}` : undefined,
-                website: website || undefined
-              },
-              createdAt: new Date().toISOString()
-            };
-            
-            setCreatedAgent(successAgent);
-            setIsCreating(false);
-            
-          } else {
-            console.error("❌ Failed to save to database:", saveResult.error);
-            updateProgress("❌ Database save failed, but agent was created");
-            
-            // Still show success since the blockchain operations worked
-            const successAgent = {
-              id: `${Date.now()}`,
-              tokenId: "1",
-              name,
-              description: desc,
-              image: image || "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop&crop=center",
-              category: category || "General",
-              creator: address || "",
-              price,
-              txHash: listHash,
-              storageUri: storageResult?.uri || "",
-              agentContractAddress: agentContractAddress,
-              social: {
-                x: xHandle ? `https://x.com/${xHandle.replace('@', '')}` : undefined,
-                website: website || undefined
-              },
-              createdAt: new Date().toISOString()
-            };
-            
-            setCreatedAgent(successAgent);
-            setIsCreating(false);
+              txHash: listTxHash,
+              blockNumber: listReceipt.blockNumber ? Number(listReceipt.blockNumber) : undefined,
+              realListingId: Number(realListingId), // Convert to number
+            });
+          } catch (listingError) {
+            console.error("❌ Failed to save listing to server:", listingError);
+            // Don't fail the whole process if listing save fails
           }
           
+          setCreatedAgent(unifiedAgentData);
+          setIsCreating(false);
+          updateProgress("🎉 Agent created and listed successfully!");
+          
         } catch (error) {
-          console.error("❌ Database save failed:", error);
-          updateProgress("❌ Database save failed, but agent was created successfully");
-          
-          // Still show success since the blockchain operations worked
-          const successAgent = {
-            id: `${Date.now()}`,
-            tokenId: "1",
-            name,
-            description: desc,
-            image: image || "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop&crop=center",
-            category: category || "General",
-            creator: address || "",
-            price,
-            txHash: listHash,
-            storageUri: storageResult?.uri || "",
-            agentContractAddress: agentContractAddress,
-            social: {
-              x: xHandle ? `https://x.com/${xHandle.replace('@', '')}` : undefined,
-              website: website || undefined
-            },
-            createdAt: new Date().toISOString()
-          };
-          
-          setCreatedAgent(successAgent);
+          console.error("❌ Failed to save agent:", error);
+          updateProgress("❌ Failed to save agent to database");
           setIsCreating(false);
         }
       };
 
       handleSaveToDatabase();
     }
-  }, [isListSuccess, listHash, agentContractAddress, name, desc, image, category, price, address, xHandle, website, storageResult]);
+  }, [isListSuccess, manualListHash, listHash, agentContractAddress, listReceipt, name, desc, image, category, price, address, xHandle, website, storageResult]);
 
   // Success State - show after successful creation
   if (createdAgent && !isCreating) {
@@ -1159,9 +1260,16 @@ export default function CreatePage() {
                   <Input
                     type="number" 
                     step="0.001"
+                    min="0"
                     placeholder="0.05" 
                     value={price} 
-                    onChange={(e) => setPrice(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow positive numbers
+                      if (value === '' || parseFloat(value) >= 0) {
+                        setPrice(value);
+                      }
+                    }}
                     className="bg-white/5 border-white/10 focus:border-purple-400/50 text-white placeholder:text-gray-500"
                   />
                 </div>

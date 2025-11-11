@@ -18,7 +18,8 @@ import {
   Calendar,
   Hash,
   ExternalLink,
-  ShoppingCart
+  ShoppingCart,
+  Info
 } from "lucide-react";
 import { getCreatedAgents, saveCreatedAgent, type CreatedAgent } from "@/lib/createdAgents";
 import { useReadContract } from "wagmi";
@@ -56,11 +57,18 @@ export default function MyCollectionsPage() {
 
   // 🎯 UNIFIED AGENT LOADING - My Collections
   const loadMyAgents = async () => {
-    if (!address) return;
+    if (!address) {
+      console.log('⚠️ No wallet address connected');
+      return;
+    }
+    
+    console.log('🔍 Loading agents for creator:', address);
     
     // 🚀 ÖNCELİK 1: Unified System'den created agents'ları yükle
     try {
       const unifiedResult = await getAllUnifiedAgents({ creator: address });
+      console.log('📊 Unified agents API response:', unifiedResult);
+      
       if (unifiedResult.success && unifiedResult.agents) {
         const createdAgents = unifiedResult.agents.map(agent => ({
           id: agent.id,
@@ -78,8 +86,11 @@ export default function MyCollectionsPage() {
           createdAt: agent.createdAt
         }));
         setMyAgents(createdAgents);
-        console.log(`🎯 Loaded ${createdAgents.length} created agents from unified system`);
+        console.log(`✅ Loaded ${createdAgents.length} created agents from unified system`);
+        console.log('📋 Agent details:', createdAgents);
         return;
+      } else {
+        console.warn('⚠️ Unified system returned no agents or failed:', unifiedResult.error);
       }
     } catch (error) {
       console.error('❌ Failed to load from unified system:', error);
@@ -344,25 +355,65 @@ export default function MyCollectionsPage() {
 
         {/* Collections Grid */}
         {myAgents.length === 0 && ownedNFTs.length === 0 ? (
-          <Card className="gradient-card border-white/10">
-            <CardContent className="p-12 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-purple-500/20 rounded-full flex items-center justify-center">
-                <Plus className="w-10 h-10 text-purple-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">No INFTs Created Yet</h3>
-              <p className="text-gray-300 mb-8 max-w-md mx-auto">
-                Start building your Intelligent NFT collection on the 0G Network. 
-                Create your first INFT today!
-              </p>
-              <Button 
-                className="gradient-0g px-8 py-3 cursor-pointer"
-                onClick={() => window.location.href = '/create'}
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Create Your First INFT
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            {/* Debug Info Card */}
+            <Card className="gradient-card border-yellow-400/30 bg-yellow-500/5">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <Info className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-1" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-yellow-300 mb-2">
+                      🔍 NFT'ler Görünmüyor mu?
+                    </h3>
+                    <div className="space-y-3 text-sm text-gray-300">
+                      <p>Eğer agent oluşturduysanız ama burada görünmüyorsa:</p>
+                      <ul className="list-disc list-inside space-y-2 ml-2">
+                        <li>Browser console'u açın (F12) ve hata mesajlarını kontrol edin</li>
+                        <li>Supabase bağlantısının çalışıp çalışmadığını test edin: 
+                          <a 
+                            href="/api/supabase/test" 
+                            target="_blank"
+                            className="text-blue-400 hover:text-blue-300 ml-2 underline"
+                          >
+                            Supabase Test
+                          </a>
+                        </li>
+                        <li>Environment variables (.env.local) dosyanızda Supabase anahtarlarının olduğundan emin olun</li>
+                        <li>Sayfa yenilenince NFT'ler kayboluyorsa, Supabase bağlantısı eksiktir</li>
+                      </ul>
+                      <div className="mt-4 p-3 bg-black/30 rounded-lg border border-white/10">
+                        <p className="text-xs text-gray-400 mb-2">Gerekli environment variables:</p>
+                        <code className="text-xs text-green-300 block">
+                          NEXT_PUBLIC_SUPABASE_URL={process.env.NEXT_PUBLIC_SUPABASE_URL}<br/>
+                          NEXT_PUBLIC_SUPABASE_ANON_KEY={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}
+                        </code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="gradient-card border-white/10">
+              <CardContent className="p-12 text-center">
+                <div className="w-20 h-20 mx-auto mb-6 bg-purple-500/20 rounded-full flex items-center justify-center">
+                  <Plus className="w-10 h-10 text-purple-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">No INFTs Created Yet</h3>
+                <p className="text-gray-300 mb-8 max-w-md mx-auto">
+                  Start building your Intelligent NFT collection on the 0G Network. 
+                  Create your first INFT today!
+                </p>
+                <Button 
+                  className="gradient-0g px-8 py-3 cursor-pointer"
+                  onClick={() => window.location.href = '/create'}
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create Your First INFT
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         ) : (
           <div className="space-y-8">
             {/* Created Agents Section */}

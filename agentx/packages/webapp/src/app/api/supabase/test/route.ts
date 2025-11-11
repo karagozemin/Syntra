@@ -31,7 +31,7 @@ export async function GET() {
     };
 
     const { data: insertData, error: insertError } = await supabase
-      .from('unified_agents')
+      .from('agents')
       .insert(testData)
       .select()
       .single();
@@ -44,7 +44,7 @@ export async function GET() {
 
     // Test 2: Query recent entries
     const { data: queryData, error: queryError } = await supabase
-      .from('unified_agents')
+      .from('agents')
       .select('id, name, created_at')
       .order('created_at', { ascending: false })
       .limit(5);
@@ -58,7 +58,7 @@ export async function GET() {
     // Test 3: Update the test entry
     if (insertData) {
       const { error: updateError } = await supabase
-        .from('unified_agents')
+        .from('agents')
         .update({ description: 'Updated test entry - keep alive successful' })
         .eq('id', insertData.id);
 
@@ -71,7 +71,7 @@ export async function GET() {
 
     // Test 4: Clean up - delete old test entries (keep only last 3)
     const { data: oldTests } = await supabase
-      .from('unified_agents')
+      .from('agents')
       .select('id, created_at')
       .like('name', '%Keep-Alive Test%')
       .order('created_at', { ascending: false })
@@ -80,7 +80,7 @@ export async function GET() {
     if (oldTests && oldTests.length > 0) {
       const idsToDelete = oldTests.map(test => test.id);
       const { error: deleteError } = await supabase
-        .from('unified_agents')
+        .from('agents')
         .delete()
         .in('id', idsToDelete);
 

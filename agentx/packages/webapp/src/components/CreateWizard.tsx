@@ -457,9 +457,16 @@ export function CreateWizard({ onComplete, isCreating }: CreateWizardProps) {
                     <Input
                       type="number"
                       step="0.001"
+                      min="0"
                       placeholder="0.075"
                       value={data.price}
-                      onChange={(e) => updateData({ price: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow positive numbers
+                        if (value === '' || parseFloat(value) >= 0) {
+                          updateData({ price: value });
+                        }
+                      }}
                       className="bg-white/5 border-white/10 focus:border-purple-400/50 text-white"
                     />
                   </div>

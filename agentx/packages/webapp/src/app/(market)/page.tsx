@@ -21,8 +21,9 @@ async function getAgentDetails(agentAddress: string) {
       { data: '0x02d05d3f', name: 'creator' }, // creator()
     ];
     
+    const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology/';
     const results = await Promise.all(calls.map(async (call) => {
-      const response = await fetch(`https://evmrpc.0g.ai/`, {
+      const response = await fetch(rpcUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -133,62 +134,8 @@ export default function HomePage() {
       // Local agents artık gösterilmiyor, duplicate önlemek için
       console.log('Local INFTs disabled - only showing unified system INFTs');
       
-      // 3. Load from Factory contract (slow, blockchain creations)
-      try {
-        if (totalAgents && totalAgents > BigInt(0)) {
-          console.log(`🔗 Loading ${totalAgents.toString()} agents from Factory contract...`);
-          
-          for (let i = 0; i < Number(totalAgents); i++) {
-            const agentResponse = await fetch(`https://evmrpc.0g.ai/`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_call',
-                params: [{
-                  to: FACTORY_ADDRESS,
-                  data: '0x8c3c4b34' + i.toString(16).padStart(64, '0') // getAgentAt(uint256)
-                }, 'latest'],
-                id: i + 1
-              })
-            });
-            
-            const result = await agentResponse.json();
-            if (result.result && result.result !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
-              const agentAddress = '0x' + result.result.slice(-40);
-              console.log(`📝 Found agent contract ${i}: ${agentAddress}`);
-              
-              // Get agent details from the individual contract
-              const agentDetails = await getAgentDetails(agentAddress);
-              if (agentDetails) {
-                // Check if this agent already exists in localStorage (avoid duplicates)
-                const isDuplicate = agents.some(agent => 
-                  agent.name === agentDetails.name && 
-                  agent.owner.toLowerCase().includes(agentDetails.creator?.toLowerCase().slice(2, 8))
-                );
-                
-                if (!isDuplicate) {
-                  agents.push({
-                    id: `blockchain-${i}`,
-                    name: agentDetails.name || `Agent #${i}`,
-                    owner: `${agentDetails.creator?.slice(0, 6)}...${agentDetails.creator?.slice(-4)}` || '0x...',
-                    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop&crop=center",
-                    priceEth: parseFloat(agentDetails.price || '0.01'),
-                    description: agentDetails.description || 'Blockchain AI Agent',
-                    category: agentDetails.category || 'General',
-                    history: [
-                      { activity: "Created", date: new Date().toISOString().split('T')[0] }
-                    ],
-                  });
-                }
-              }
-            }
-          }
-          console.log(`🔗 Loaded ${Number(totalAgents)} blockchain agents`);
-        }
-      } catch (error) {
-        console.error('❌ Failed to load blockchain agents:', error);
-      }
+      // 3. REMOVED: Factory contract loading - agents already loaded from unified system
+      // This was causing duplicate/mock agents with "0x0x" addresses
       
       setBlockchainAgents(agents);
       console.log(`✅ Total loaded: ${agents.length} unique agents`);

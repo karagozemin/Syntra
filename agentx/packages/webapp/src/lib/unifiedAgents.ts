@@ -57,6 +57,13 @@ export async function saveUnifiedAgent(agentData: Partial<UnifiedAgent>): Promis
 }> {
   try {
     console.log('🎯 Saving agent to unified system:', agentData.name);
+    console.log('📦 Agent data being sent:', {
+      id: agentData.id,
+      name: agentData.name,
+      creator: agentData.creator,
+      price: agentData.price,
+      contractAddress: agentData.agentContractAddress
+    });
     
     const response = await fetch('/api/agents', {
       method: 'POST',
@@ -66,10 +73,14 @@ export async function saveUnifiedAgent(agentData: Partial<UnifiedAgent>): Promis
       body: JSON.stringify(agentData),
     });
 
+    console.log('📡 API Response status:', response.status, response.statusText);
+    
     const result = await response.json();
+    console.log('📊 API Response data:', result);
     
     if (result.success) {
       console.log(`✅ Agent saved to unified system: ${result.agent.name}`);
+      console.log(`✅ Total agents in system: ${result.total}`);
       
       // ✅ PERFORMANS İYİLEŞTİRMESİ: Cache'i temizle ki yeni agent görünsün
       clearUnifiedAgentsCache();
@@ -88,6 +99,7 @@ export async function saveUnifiedAgent(agentData: Partial<UnifiedAgent>): Promis
 
   } catch (error) {
     console.error('❌ Failed to save agent to unified system:', error);
+    console.error('❌ Error details:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error'

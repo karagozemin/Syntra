@@ -1,7 +1,7 @@
 // Real Marketplace Listing System
 // This module handles actual blockchain marketplace listings
 
-import { ethers } from 'ethers';
+import { formatEther } from 'viem';
 import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from './contracts';
 
 export interface RealListingResult {
@@ -104,7 +104,7 @@ export async function validateListingExists(listingId: number): Promise<{
     return {
       exists: true,
       active,
-      price: ethers.formatEther(price.toString()),
+      price: formatEther(BigInt(price)),
       seller
     };
     
